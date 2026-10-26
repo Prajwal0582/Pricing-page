@@ -50,6 +50,8 @@ export function creditValue(billing: BillingPeriod) {
   const proPrice = planPrice("pro", billing);
   return {
     included,
+    /** Annual billing adds 1,000 bonus credits on top of the included credits. */
+    bonus: billing === "annual" ? 1000 : 0,
     basicPrice,
     proPrice,
     difference: proPrice - basicPrice,

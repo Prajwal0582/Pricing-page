@@ -12,7 +12,15 @@ const MODAL_SHADOW =
  * Callback request — one click sends the request; sales calls the account owner.
  * No contact-method choice: we use the details already on the account.
  */
-export default function TalkToSalesModal({ onClose }: { onClose: () => void }) {
+export default function TalkToSalesModal({
+  onClose,
+  topic = "seats",
+}: {
+  onClose: () => void;
+  /** "seats" — extra Team seats; "general" — the "Can't decide? Let's talk" call request. */
+  topic?: "seats" | "general";
+}) {
+  const seatsAsk = topic === "seats";
   const [seats, setSeats] = useState<string | null>(null);
   const [note, setNote] = useState("");
   const [sent, setSent] = useState(false);
@@ -68,10 +76,12 @@ export default function TalkToSalesModal({ onClose }: { onClose: () => void }) {
                 </span>
                 <div>
                   <p id="talk-to-sales-title" className="text-lg font-semibold leading-7 text-[#1D2939]">
-                    Need more seats?
+                    {seatsAsk ? "Need more seats?" : "Talk to our sales team"}
                   </p>
                   <p className="text-sm leading-5 text-[#475467]">
-                    Send a request and our sales team will call you to set up extra seats.
+                    {seatsAsk
+                      ? "Send a request and our sales team will call you to set up extra seats."
+                      : "Tell us what you're prospecting for and a sales specialist will call you to help pick the right plan."}
                   </p>
                 </div>
               </div>
@@ -91,6 +101,7 @@ export default function TalkToSalesModal({ onClose }: { onClose: () => void }) {
               <p className="text-xs leading-[18px] text-[#475467]">sarah@company.com</p>
             </div>
 
+            {seatsAsk && (
             <div>
               <p className="text-sm font-medium leading-5 text-[#344054]">
                 How many seats? <span className="font-normal text-[#667085]">(optional)</span>
@@ -116,6 +127,7 @@ export default function TalkToSalesModal({ onClose }: { onClose: () => void }) {
                 })}
               </div>
             </div>
+            )}
 
             <label className="block">
               <span className="text-sm font-medium leading-5 text-[#344054]">

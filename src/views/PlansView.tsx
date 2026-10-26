@@ -115,7 +115,8 @@ export default function PlansView({
   const [goal, setGoal] = useState<GoalId | null>(contextDefaultGoal);
   const [selectedPlan, setSelectedPlan] = useState<PlanId>(contextDefaultPlan);
   const [option, setOption] = useState<PricingOption>(readOptionParam);
-  const [salesOpen, setSalesOpen] = useState(false);
+  const [salesTopic, setSalesTopic] = useState<"seats" | "general" | null>(null);
+  const salesOpen = salesTopic !== null;
   const [groupStyle, setGroupStyle] = useState<GroupStyle>(readGroupsParam);
 
   function changeGroupStyle(next: GroupStyle) {
@@ -200,11 +201,18 @@ export default function PlansView({
   const activeBadgeLabel: "MOST POPULAR" | "RECOMMENDED" =
     goal !== null || isPurchaseMode ? "RECOMMENDED" : "MOST POPULAR";
 
-  const buyListPriceDisplay = purchaseContext ? purchaseContext.estimatedPrice.toLocaleString("en-US") : "Custom price";
+  const b3 = option === "b3";
+  const buyListPriceDisplay = purchaseContext
+    ? purchaseContext.estimatedPrice.toLocaleString("en-US")
+    : b3
+      ? "Pay per record"
+      : "Custom price";
   const buyListSupportLines = purchaseContext
     ? [`${purchaseContext.resultCount.toLocaleString()} qualified leads`, "One-time purchase"]
-    : ["Price will be calculated based on selected records."];
-  const buyListCta = isPurchaseMode ? "Proceed to checkout →" : "Search for leads →";
+    : b3
+      ? ["Just need one list? Search, pick your records, and see your price before you buy."]
+      : ["Price will be calculated based on selected records."];
+  const buyListCta = isPurchaseMode ? "Proceed to checkout →" : b3 ? "Build my list →" : "Search for leads →";
 
   return (
     <div className={`h-screen w-full overflow-y-auto overflow-x-hidden ${option === "b3" ? "bg-white" : "bg-[#F2F4F7]"}`}>
@@ -227,7 +235,8 @@ export default function PlansView({
         onBillingChange={setBilling}
         option={option}
         groupStyle={groupStyle}
-        onTalkToSales={() => setSalesOpen(true)}
+        onTalkToSales={() => setSalesTopic("seats")}
+        onRequestCall={() => setSalesTopic("general")}
       />
       {/* Room for the floating option switcher */}
       <div aria-hidden className="h-24" />
@@ -239,7 +248,7 @@ export default function PlansView({
           onGroupStyleChange={changeGroupStyle}
         />
       )}
-      {salesOpen && <TalkToSalesModal onClose={() => setSalesOpen(false)} />}
+      {salesTopic && <TalkToSalesModal topic={salesTopic} onClose={() => setSalesTopic(null)} />}
     </div>
   );
 }

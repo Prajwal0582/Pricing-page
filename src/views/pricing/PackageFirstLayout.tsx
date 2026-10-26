@@ -40,6 +40,8 @@ export interface PackageFirstLayoutProps extends PricingLayoutProps {
   /** B3 local exploration — how plan groups and selection are shown. */
   groupStyle?: GroupStyle;
   onTalkToSales: () => void;
+  /** "Can't decide? Let's talk" bar — a general call request, not the seats ask. */
+  onRequestCall?: () => void;
 }
 
 /** Shared light gray header surface — same shade on every package card. */
@@ -207,11 +209,19 @@ function PlanFeatureChecklist({
   compact?: boolean;
 }) {
   const sectionGap = compact ? "gap-2" : "gap-3";
+  // B3 review copy: Team's access header and Buy list without the MCP row (one-time lists can use MCP via freemium).
+  const accessTitle = compact && plan.id === "team" ? "View + Export access to:" : plan.accessTitle;
+  const notIncludedItems =
+    compact && plan.id === "buy-list"
+      ? plan.notIncludedItems?.map((item) =>
+          item.children ? { ...item, children: item.children.filter((c) => c.label !== "MCP (credits required)") } : item,
+        )
+      : plan.notIncludedItems;
   return (
     <div className={`flex h-full min-h-0 flex-col ${compact ? "gap-5" : "gap-6"}`}>
       {plan.accessItems.length > 0 && (
         <div className={`flex flex-col ${sectionGap}`}>
-          <p className="text-sm font-semibold leading-5 text-[#667085]">{plan.accessTitle}</p>
+          <p className="text-sm font-semibold leading-5 text-[#667085]">{accessTitle}</p>
           {plan.accessItems.map((item) => (
             <div key={item} className="flex items-start gap-2">
               <div className="pt-0.5"><CheckIcon /></div>
@@ -231,11 +241,11 @@ function PlanFeatureChecklist({
           onToggle={onToggle}
         />
         {/* B3: excluded items continue the same list (no separate "Not included" header). */}
-        {compact && plan.notIncludedItems && plan.notIncludedItems.length > 0 && (
+        {compact && notIncludedItems && notIncludedItems.length > 0 && (
           <FeatureRows
             planId={plan.id}
             section="exc"
-            items={plan.notIncludedItems}
+            items={notIncludedItems}
             Icon={XIcon}
             expanded={expanded}
             onToggle={onToggle}
@@ -658,6 +668,9 @@ function CompanionCard({
   );
 }
 
+/** Sales line shown under "Request a call" (same number as the comparison footer). */
+const SALES_PHONE = "877.708.3844";
+
 /** Tray (Bravio style) — "Can't decide? Let's talk" bar inside the tray. */
 function TalkBar({ onTalkToSales }: { onTalkToSales: () => void }) {
   return (
@@ -671,14 +684,19 @@ function TalkBar({ onTalkToSales }: { onTalkToSales: () => void }) {
           Tell us what you&apos;re prospecting for and we&apos;ll recommend a plan, or set up custom seats for your team.
         </p>
       </div>
-      <button
-        type="button"
-        onClick={onTalkToSales}
-        className="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-medium text-[#00729F] hover:bg-[#F0F9FF]"
-      >
-        <FontAwesomeIcon icon={faPhone} className="text-[14px]" aria-hidden />
-        Request a call
-      </button>
+      <div className="flex shrink-0 flex-col items-start gap-1.5 sm:items-center">
+        <button
+          type="button"
+          onClick={onTalkToSales}
+          className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-medium text-[#00729F] hover:bg-[#F0F9FF]"
+        >
+          <FontAwesomeIcon icon={faPhone} className="text-[14px]" aria-hidden />
+          Request a call
+        </button>
+        <a href={`tel:${SALES_PHONE.replace(/\./g, "")}`} className="text-xs leading-[18px] text-[#E0F2FE] hover:text-white hover:underline">
+          or call us at <span className="font-semibold text-white">{SALES_PHONE}</span>
+        </a>
+      </div>
     </div>
   );
 }
@@ -790,8 +808,7 @@ function PlanPriceV3({
     : planId === "team"
       ? "5 seats, billed monthly on an annual contract."
       : "Per seat, billed monthly on an annual contract.";
-  const credits = `${fmtNumber(v.included)} credits${annual ? "" : "/mo"}`;
-  const worth = `${fmtMoney(v.includedValue)}${annual ? "" : "/mo"}`;
+  const credits = `${fmtNumber(v.included + v.bonus)} credits${annual ? "/yr" : "/mo"}`;
 
   const summary =
     planId === "basic"
@@ -800,16 +817,14 @@ function PlanPriceV3({
           title: "No credits included",
           points: [
             `Buy credits as you go, at ${fmtRate(PAYG_CREDIT_RATE)} each`,
-            "Credits power Salesgenie features like exports, email unlocks and campaigns",
-            "Add-on credits power exports, email unlocks, campaigns, MCP and CRM integrations.",
+            "Credits power exports, email unlocks, campaigns, MCP and CRM integrations.",
           ],
         }
       : {
           icon: faUsers,
-            title: `${credits} + 5 users`,
+            title: `${credits}, shared by the whole team`,
             points: [
-              `Credits shared across the team, worth ${worth}`,
-              "Add-on credits power exports, email unlocks, campaigns, MCP and CRM integrations.",
+              "Credits power exports, email unlocks, campaigns, MCP and CRM integrations.",
               <>
                 Need more seats? <TalkToSalesLink label="Talk to sales →" onClick={onTalkToSales} />
               </>,
@@ -847,10 +862,12 @@ function PlanPriceV3({
   );
 }
 
-/** Option B3 (Pro) — credits headline with a Save chip, value line, and what credits power. */
+/** Option B3 (Pro) — credits headline (incl. annual bonus) with a Save chip, and what credits power. */
 function ProCreditSummary({ billing }: { billing: PricingLayoutProps["billing"] }) {
   const v = creditValue(billing);
-  const per = billing === "annual" ? "" : "/mo";
+  const annual = billing === "annual";
+  const total = v.included + v.bonus;
+  const saving = total * PAYG_CREDIT_RATE - v.difference;
   return (
     <div className="mt-4 flex flex-col gap-2 rounded-lg border border-[#EAECF0] bg-[#F9FAFB] px-3 py-3">
       <div className="flex items-start gap-2">
@@ -858,31 +875,22 @@ function ProCreditSummary({ billing }: { billing: PricingLayoutProps["billing"] 
           <FontAwesomeIcon icon={faCoins} className="text-[14px]" />
         </span>
         <p className="min-w-0 flex-1 text-sm font-semibold leading-5 text-[#1D2939]">
-          {fmtNumber(v.included)} credits{per} included
+          {fmtNumber(total)} credits{annual ? "/yr" : "/mo included"}
+          {annual && (
+            <span className="block text-xs font-medium leading-[18px] text-[#667085]">
+              (incl. {fmtNumber(v.bonus)} annual bonus)
+            </span>
+          )}
         </p>
         <span className="shrink-0 rounded-md bg-[#0D7867] px-1.5 text-xs font-semibold leading-5 text-white">
-          Save extra {fmtMoney(v.includedValue - v.difference)}
-          {per}
+          {annual ? `Save extra ${fmtMoney(saving)}` : `Save ${fmtMoney(saving)}/mo`}
         </span>
       </div>
       <div className="flex items-start gap-2 text-xs leading-[18px] text-[#475467]">
         <span className="flex h-[18px] w-5 shrink-0 items-center justify-center" aria-hidden>
           <span className="size-1.5 rounded-full bg-[#008DC3]" />
         </span>
-        <p className="min-w-0">
-          Credits worth{" "}
-          <span className="font-semibold text-[#1D2939]">
-            {fmtMoney(v.includedValue)}
-            {per} for only {fmtMoney(v.difference)}
-            {per} more than Basic
-          </span>
-        </p>
-      </div>
-      <div className="flex items-start gap-2 text-xs leading-[18px] text-[#475467]">
-        <span className="flex h-[18px] w-5 shrink-0 items-center justify-center" aria-hidden>
-          <span className="size-1.5 rounded-full bg-[#008DC3]" />
-        </span>
-        <p className="min-w-0">Add-on credits power exports, email unlocks, campaigns, MCP and CRM integrations.</p>
+        <p className="min-w-0">Credits power exports, email unlocks, campaigns, MCP and CRM integrations.</p>
       </div>
     </div>
   );
@@ -910,6 +918,7 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
     onBillingChange,
     option,
     onTalkToSales,
+    onRequestCall = onTalkToSales,
     groupStyle = "panels",
   } = props;
 
@@ -1363,9 +1372,9 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
 
             <div className={`${compact ? "px-4 py-3" : "p-4"} self-start w-full`}>
               <div className="flex flex-col">
-                {buyListPriceDisplay === "Custom price" ? (
+                {!/\d/.test(buyListPriceDisplay) ? (
                   <p className="font-semibold text-[#1D2939] text-[36px] leading-[44px] tracking-[-0.72px]">
-                    Custom price
+                    {buyListPriceDisplay}
                   </p>
                 ) : (
                   <p className="inline-flex items-start font-semibold text-[#1D2939] tracking-[-0.72px]">
@@ -1417,7 +1426,7 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
                   {
                     label: "Price",
                     value:
-                      buyListPriceDisplay === "Custom price"
+                      !/\d/.test(buyListPriceDisplay)
                         ? "Calculated from selected records"
                         : `$${buyListPriceDisplay}`,
                   },
@@ -1448,12 +1457,12 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
             />
           )}
 
-          {trayMode && <TalkBar onTalkToSales={onTalkToSales} />}
+          {trayMode && <TalkBar onTalkToSales={onRequestCall} />}
         </div>
 
         {grouped && !trayMode && (
           <div className="pt-6">
-            <TalkBar onTalkToSales={onTalkToSales} />
+            <TalkBar onTalkToSales={onRequestCall} />
           </div>
         )}
 
