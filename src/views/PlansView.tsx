@@ -4,6 +4,9 @@ import { GOAL_CHIPS } from "../data/pricingPlans";
 import type { ListPurchaseContext } from "../types";
 import { PackageFirstLayout } from "./pricing/PackageFirstLayout";
 import TalkToSalesModal from "./pricing/TalkToSalesModal";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faCircleCheck } from "@fortawesome/free-regular-svg-icons";
+import { GENIE_SHADOW_SM } from "./pricing/pricingTypes";
 import type { GroupStyle, PricingOption } from "./pricing/creditValue";
 import { GROUP_STYLES, PRICING_OPTIONS, groupsPlans, hidesGoalPicker } from "./pricing/creditValue";
 
@@ -266,12 +269,19 @@ export default function PlansView({
       )}
       {salesTopic && <TalkToSalesModal topic={salesTopic} onClose={() => setSalesTopic(null)} />}
       {salesToast && (
+        // Genie Material Design · Toast (Type=Inline, State=Success, Icon=Leading, Supporting text=True)
         <div
           role="status"
-          className="fixed left-1/2 top-4 z-50 flex -translate-x-1/2 items-center gap-2 rounded-lg border border-[#ABEFC6] bg-[#ECFDF3] px-4 py-2.5 text-sm font-medium text-[#067647] shadow-lg animate-fade-in"
+          className="fixed left-1/2 top-4 z-50 flex w-[calc(100%-32px)] max-w-[480px] -translate-x-1/2 items-start gap-2 rounded-lg border border-[#CDE9E0] bg-[#F2F9F7] p-4 animate-fade-in"
+          style={{ boxShadow: GENIE_SHADOW_SM }}
         >
-          <span aria-hidden>✓</span>
-          Thanks! Our sales team will reach out to you soon.
+          <span className="flex h-6 w-4 shrink-0 items-center justify-center text-[#0D7867]" aria-hidden>
+            <FontAwesomeIcon icon={faCircleCheck} className="text-[16px]" />
+          </span>
+          <div className="min-w-0">
+            <p className="text-base font-medium leading-6 text-[#026B5C]">Request sent</p>
+            <p className="text-base leading-6 text-[#0D7867]">Our sales team will reach out to you soon.</p>
+          </div>
         </div>
       )}
     </div>
