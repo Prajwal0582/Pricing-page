@@ -16,6 +16,8 @@ interface PlansViewProps {
   onBuyListCheckout?: () => void;
   /** Single-design review links hide the prototype option switcher. */
   hideOptionSwitcher?: boolean;
+  /** Talk to sales / Request a call send the request straight away and confirm inline (no popup). */
+  salesConfirmInline?: boolean;
 }
 
 function readOptionParam(): PricingOption {
@@ -106,6 +108,7 @@ export default function PlansView({
   purchaseContext = null,
   onBuyListCheckout,
   hideOptionSwitcher = false,
+  salesConfirmInline = false,
 }: PlansViewProps) {
   const isPurchaseMode = Boolean(purchaseContext);
   const contextDefaultPlan: PlanId = isPurchaseMode ? "buy-list" : "pro";
@@ -117,6 +120,18 @@ export default function PlansView({
   const [option, setOption] = useState<PricingOption>(readOptionParam);
   const [salesTopic, setSalesTopic] = useState<"seats" | "general" | null>(null);
   const salesOpen = salesTopic !== null;
+  const [salesRequested, setSalesRequested] = useState(false);
+  const [salesToast, setSalesToast] = useState(false);
+
+  function requestSales(topic: "seats" | "general") {
+    if (!salesConfirmInline) {
+      setSalesTopic(topic);
+      return;
+    }
+    setSalesRequested(true);
+    setSalesToast(true);
+    window.setTimeout(() => setSalesToast(false), 3200);
+  }
   const [groupStyle, setGroupStyle] = useState<GroupStyle>(readGroupsParam);
 
   function changeGroupStyle(next: GroupStyle) {
@@ -235,8 +250,9 @@ export default function PlansView({
         onBillingChange={setBilling}
         option={option}
         groupStyle={groupStyle}
-        onTalkToSales={() => setSalesTopic("seats")}
-        onRequestCall={() => setSalesTopic("general")}
+        onTalkToSales={() => requestSales("seats")}
+        onRequestCall={() => requestSales("general")}
+        salesRequested={salesConfirmInline && salesRequested}
       />
       {/* Room for the floating option switcher */}
       <div aria-hidden className="h-24" />
@@ -249,6 +265,15 @@ export default function PlansView({
         />
       )}
       {salesTopic && <TalkToSalesModal topic={salesTopic} onClose={() => setSalesTopic(null)} />}
+      {salesToast && (
+        <div
+          role="status"
+          className="fixed left-1/2 top-4 z-50 flex -translate-x-1/2 items-center gap-2 rounded-lg border border-[#ABEFC6] bg-[#ECFDF3] px-4 py-2.5 text-sm font-medium text-[#067647] shadow-lg animate-fade-in"
+        >
+          <span aria-hidden>✓</span>
+          Thanks! Our sales team will reach out to you soon.
+        </div>
+      )}
     </div>
   );
 }

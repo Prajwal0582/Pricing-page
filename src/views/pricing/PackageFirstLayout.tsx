@@ -42,6 +42,8 @@ export interface PackageFirstLayoutProps extends PricingLayoutProps {
   onTalkToSales: () => void;
   /** "Can't decide? Let's talk" bar — a general call request, not the seats ask. */
   onRequestCall?: () => void;
+  /** Sales request already sent (inline confirmation mode) — links/buttons show "Request sent". */
+  salesRequested?: boolean;
 }
 
 /** Shared light gray header surface — same shade on every package card. */
@@ -365,7 +367,15 @@ function PlanFacts({
 }
 
 /** Inline "Talk to sales" trigger inside a plan card — never selects the card. */
-function TalkToSalesLink({ label, onClick }: { label: string; onClick: () => void }) {
+function TalkToSalesLink({ label, onClick, sent = false }: { label: string; onClick: () => void; sent?: boolean }) {
+  if (sent) {
+    return (
+      <span className="inline-flex items-center gap-1 font-semibold text-[#067647]">
+        <FontAwesomeIcon icon={faCircleCheckSolid} className="text-[12px]" aria-hidden />
+        Request sent, we&apos;ll reach out soon
+      </span>
+    );
+  }
   return (
     <button
       type="button"
@@ -672,7 +682,7 @@ function CompanionCard({
 const SALES_PHONE = "877.708.3844";
 
 /** Tray (Bravio style) — "Can't decide? Let's talk" bar inside the tray. */
-function TalkBar({ onTalkToSales }: { onTalkToSales: () => void }) {
+function TalkBar({ onTalkToSales, sent = false }: { onTalkToSales: () => void; sent?: boolean }) {
   return (
     <div
       data-keep-selection
@@ -690,8 +700,8 @@ function TalkBar({ onTalkToSales }: { onTalkToSales: () => void }) {
           onClick={onTalkToSales}
           className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-medium text-[#00729F] hover:bg-[#F0F9FF]"
         >
-          <FontAwesomeIcon icon={faPhone} className="text-[14px]" aria-hidden />
-          Request a call
+          <FontAwesomeIcon icon={sent ? faCircleCheckSolid : faPhone} className="text-[14px]" aria-hidden />
+          {sent ? "Request sent" : "Request a call"}
         </button>
         <a href={`tel:${SALES_PHONE.replace(/\./g, "")}`} className="text-xs leading-[18px] text-[#E0F2FE] hover:text-white hover:underline">
           or call us at <span className="font-semibold text-white">{SALES_PHONE}</span>
@@ -794,11 +804,13 @@ function PlanPriceV3({
   pricing,
   billing,
   onTalkToSales,
+  salesRequested = false,
 }: {
   planId: Exclude<PlanId, "buy-list">;
   pricing: { display: string; strikePrice?: string };
   billing: PricingLayoutProps["billing"];
   onTalkToSales: () => void;
+  salesRequested?: boolean;
 }) {
   const v = creditValue(billing);
   const annual = billing === "annual";
@@ -826,7 +838,8 @@ function PlanPriceV3({
             points: [
               "Credits power exports, email unlocks, campaigns, MCP and CRM integrations.",
               <>
-                Need more seats? <TalkToSalesLink label="Talk to sales →" onClick={onTalkToSales} />
+                Need more seats?{" "}
+                <TalkToSalesLink label="Talk to sales →" onClick={onTalkToSales} sent={salesRequested} />
               </>,
             ],
           };
@@ -919,6 +932,7 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
     option,
     onTalkToSales,
     onRequestCall = onTalkToSales,
+    salesRequested = false,
     groupStyle = "panels",
   } = props;
 
@@ -1223,7 +1237,13 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
                 {/* Row 2 — price + discount (left-aligned; 20px gap under price) */}
                 <div className={`${compact ? "px-4 py-3" : "p-4"} self-start w-full`}>
                   {option === "b3" ? (
-                    <PlanPriceV3 planId={planId} pricing={pricing} billing={billing} onTalkToSales={onTalkToSales} />
+                    <PlanPriceV3
+                      planId={planId}
+                      pricing={pricing}
+                      billing={billing}
+                      onTalkToSales={onTalkToSales}
+                      salesRequested={salesRequested}
+                    />
                   ) : (
                   <div className="flex flex-col">
                     <div className="flex items-start gap-1.5">
@@ -1457,12 +1477,12 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
             />
           )}
 
-          {trayMode && <TalkBar onTalkToSales={onRequestCall} />}
+          {trayMode && <TalkBar onTalkToSales={onRequestCall} sent={salesRequested} />}
         </div>
 
         {grouped && !trayMode && (
           <div className="pt-6">
-            <TalkBar onTalkToSales={onRequestCall} />
+            <TalkBar onTalkToSales={onRequestCall} sent={salesRequested} />
           </div>
         )}
 
