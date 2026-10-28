@@ -269,19 +269,16 @@ export default function PlansView({
       )}
       {salesTopic && <TalkToSalesModal topic={salesTopic} onClose={() => setSalesTopic(null)} />}
       {salesToast && (
-        // Genie Material Design · Toast (Type=Inline, State=Success, Icon=Leading, Supporting text=True)
+        // Genie Material Design · Toast (Type=Time Sensitive, State=Default, Icon=Leading)
         <div
           role="status"
-          className="fixed left-1/2 top-4 z-50 flex w-[calc(100%-32px)] max-w-[480px] -translate-x-1/2 items-start gap-2 rounded-lg border border-[#CDE9E0] bg-[#F2F9F7] p-4 animate-fade-in"
+          className="fixed left-1/2 top-4 z-50 flex w-[calc(100%-32px)] max-w-[480px] -translate-x-1/2 items-center gap-2 rounded-lg border border-[#475467] bg-[#475467] p-4 text-white animate-fade-in"
           style={{ boxShadow: GENIE_SHADOW_SM }}
         >
-          <span className="flex h-6 w-4 shrink-0 items-center justify-center text-[#0D7867]" aria-hidden>
+          <span className="flex size-4 shrink-0 items-center justify-center" aria-hidden>
             <FontAwesomeIcon icon={faCircleCheck} className="text-[16px]" />
           </span>
-          <div className="min-w-0">
-            <p className="text-base font-medium leading-6 text-[#026B5C]">Request sent</p>
-            <p className="text-base leading-6 text-[#0D7867]">Our sales team will reach out to you soon.</p>
-          </div>
+          <p className="min-w-0 text-base font-medium leading-6">Request sent. Our sales team will reach out to you soon.</p>
         </div>
       )}
     </div>
