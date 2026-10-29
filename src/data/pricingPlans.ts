@@ -26,6 +26,8 @@ export interface FeatureItem {
   /** Start expanded (e.g. Buy list subscription features) */
   defaultExpanded?: boolean;
   children?: { label: string; info?: boolean }[];
+  /** Available with credits (not blocked) — shown with the credits icon instead of a cross. */
+  credit?: boolean;
 }
 
 export interface PlanDefinition {
@@ -82,12 +84,12 @@ export const PLANS: PlanDefinition[] = [
     ],
     notIncludedTitle: "Not Included",
     notIncludedItems: [
-      { label: "Credits (requires additional purchase)" },
-      { label: "Export leads (Credits required)" },
-      { label: "Email unlocks (Credits required)" },
-      { label: "Email Campaigns (Credits required)" },
-      { label: "MCP (credits required)", info: true },
-      { label: "CRM integration", info: true },
+      { label: "Credits (requires additional purchase)", credit: true },
+      { label: "Export leads (uses credits)", credit: true },
+      { label: "Email unlocks (uses credits)", credit: true },
+      { label: "Email Campaigns (uses credits)", credit: true },
+      { label: "MCP (uses credits)", info: true, credit: true },
+      { label: "CRM integration (uses credits)", info: true, credit: true },
     ],
     addons: [
       { label: "Consumer cellphone", info: true },
@@ -145,7 +147,7 @@ export const PLANS: PlanDefinition[] = [
     ],
     notIncludedTitle: "Not Included",
     notIncludedItems: [
-      { label: "Admin control" },
+      { label: "Team management" },
       { label: "Lead assignment & team reporting" },
       { label: "Additional user license" },
     ],
@@ -251,7 +253,7 @@ export const PLANS: PlanDefinition[] = [
         children: [
           { label: "Weekly data refresh" },
           { label: "Email and direct mail campaign" },
-          { label: "MCP (credits required)", info: true },
+          { label: "MCP (uses credits)", info: true },
           { label: "CRM integration" },
           { label: "Buyer intent" },
           { label: "Consumer cellphone" },
@@ -366,8 +368,9 @@ export const FEATURE_TOOLTIPS: Record<string, string> = {
   "Direct mail marketing":
     "Additional charge for postage, billed separately from credits, paid at time of send",
   "CRM integration": "CRM integration allows you to export data directly to your CRM",
+  "CRM integration (uses credits)": "Connect your CRM anytime; exporting each record to it uses one credit",
   "CRM Integration": "CRM integration allows you to export data directly to your CRM",
-  "MCP (credits required)":
+  "MCP (uses credits)":
     "Access Salesgenie in Claude or ChatGPT through MCP. Setup is available; prospecting actions use credits.",
   "MCP integration":
     "Bring Salesgenie into Claude or ChatGPT with MCP so you can research and act on leads in your AI tools.",

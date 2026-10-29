@@ -72,6 +72,18 @@ function XIcon() {
   );
 }
 
+/** Available with credits — a filled brand-blue coin (not a cross: the feature isn't blocked). */
+function CreditIcon() {
+  return (
+    <span
+      title="Available with credits"
+      className="flex size-3.5 shrink-0 items-center justify-center rounded-full bg-[#008DC3] text-white"
+    >
+      <FontAwesomeIcon icon={faCoins} className="text-[7px]" aria-hidden />
+    </span>
+  );
+}
+
 function PlusIcon() {
   return (
     <svg viewBox="0 0 14 14" fill="none" className="size-3.5 shrink-0 text-[#0BA38C]" aria-hidden>
@@ -154,6 +166,7 @@ function FeatureRows({
         const isOpen = Boolean(expanded[key]);
         const isExpandable = Boolean(item.expandable && item.children?.length);
         const tip = item.info ? resolveTooltip(item.label) : undefined;
+        const RowIcon = item.credit ? CreditIcon : Icon;
         return (
           <div key={item.label} className="flex flex-col gap-2">
             {isExpandable ? (
@@ -166,7 +179,7 @@ function FeatureRows({
                 className="flex w-full items-start gap-2 text-left cursor-pointer"
                 aria-expanded={isOpen}
               >
-                <div className="pt-0.5"><Icon /></div>
+                <div className="pt-0.5"><RowIcon /></div>
                 <span className={`text-sm leading-5 text-[#475467] flex-1 ${item.bold ? "font-semibold" : "font-normal"}`}>
                   {item.label}
                 </span>
@@ -175,7 +188,7 @@ function FeatureRows({
               </button>
             ) : (
               <div className="flex items-start gap-2">
-                <div className="pt-0.5"><Icon /></div>
+                <div className="pt-0.5"><RowIcon /></div>
                 <span className={`text-sm leading-5 text-[#475467] flex-1 ${item.bold ? "font-semibold" : "font-normal"}`}>
                   {item.label}
                 </span>
@@ -216,7 +229,7 @@ function PlanFeatureChecklist({
   const notIncludedItems =
     compact && plan.id === "buy-list"
       ? plan.notIncludedItems?.map((item) =>
-          item.children ? { ...item, children: item.children.filter((c) => c.label !== "MCP (credits required)") } : item,
+          item.children ? { ...item, children: item.children.filter((c) => c.label !== "MCP (uses credits)") } : item,
         )
       : plan.notIncludedItems;
   return (
@@ -550,7 +563,12 @@ const groupOf = (planId: PlanId) => PLAN_GROUPS.find((g) => (g.plans as readonly
 function GroupPanel({ group, groupStyle, active }: { group: PlanGroup; groupStyle: GroupStyle; active: boolean }) {
   if (groupStyle === "tabs") return null;
   const look =
-    groupStyle === "tracks" || groupStyle === "tabsBorder"
+    groupStyle === "tabsBorder"
+      ? // Quiet grouping: the selected plan card carries the emphasis, not the section.
+        active
+        ? "border border-[#D6EAF5] bg-[#F7FBFE]"
+        : "border border-[#EAECF0] bg-[#FAFAFB]"
+      : groupStyle === "tracks"
       ? `border ${group.accent.tint} ${active ? `ring-2 ${group.accent.ring} shadow-[0_16px_32px_-16px_rgba(16,24,40,0.35)]` : "opacity-70"}`
       : groupStyle === "spotlight"
         ? active
