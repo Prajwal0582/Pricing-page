@@ -1119,7 +1119,7 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
                     <FontAwesomeIcon icon={faCircleCheck} className="text-[14px]" />
                   </span>
                   <p className="text-xs font-medium leading-[18px] text-[#026B5C]">
-                    Pay only for 10 months and get 12 months access + 1,000 bonus credits.
+                    Pay only for 10 months and get 12 months access + 1,000 bonus credits on Pro and Team.
                   </p>
                 </div>
               </div>

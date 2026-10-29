@@ -76,7 +76,9 @@ export default function PricingApp() {
           billing={plan.billing}
           onBack={() => setView("plans")}
           onComplete={({ billing, monthlyCredits }) => {
-            const credits = billing === "annual" ? monthlyCredits * 12 + 1000 : monthlyCredits;
+            // Annual: 12 months upfront + 1,000 bonus on Pro / Team (Basic has no bonus).
+            const bonus = billing === "annual" && plan.id !== "basic" ? 1000 : 0;
+            const credits = (billing === "annual" ? monthlyCredits * 12 : monthlyCredits) + bonus;
             const name = plan.id.charAt(0).toUpperCase() + plan.id.slice(1);
             backToPlans();
             showToast(`${name} ${billing} subscription started · ${credits.toLocaleString()} credits added.`);
@@ -96,7 +98,13 @@ export default function PricingApp() {
       )}
       {view === "purchase-success" && (
         <div className="h-screen bg-[#F9FAFB]">
-          <PurchaseSuccessView onViewList={backToPlans} onNewSearch={backToPlans} />
+          <PurchaseSuccessView
+            listName={list?.listName}
+            recordCount={list?.resultCount}
+            amountPaid={list?.estimatedPrice}
+            onViewList={backToPlans}
+            onNewSearch={backToPlans}
+          />
         </div>
       )}
       {toast && (

@@ -29,7 +29,8 @@ export default function PurchaseView({
   const [termsAgreed, setTermsAgreed] = useState(false);
   const maxRecords = isBuyList ? fixedCount : 27468;
 
-  const basePrice = isBuyList ? fixedPrice : 3000;
+  // Without a list, price scales with the record slider (27,468 records = $3,000).
+  const basePrice = isBuyList ? fixedPrice : Math.round((records * 3000) / 27468);
   const purchaseSignal = isBuyList ? 0 : 390;
   const tax = isBuyList ? 0 : 30;
   const total = basePrice + purchaseSignal + tax;
@@ -201,9 +202,11 @@ export default function PurchaseView({
                 ) : (
                   <>
                     <div className="flex justify-between items-start">
-                      <span className="text-sm text-[#475467] flex-1">27,468 records (12 months export access)</span>
+                      <span className="text-sm text-[#475467] flex-1">
+                        {records.toLocaleString()} records (12 months export access)
+                      </span>
                       <span className="text-sm text-[#1d2939] font-medium whitespace-nowrap">
-                        $3,000.<sup className="text-[10px]">00</sup>
+                        ${formatMoney(basePrice)}.<sup className="text-[10px]">00</sup>
                       </span>
                     </div>
                     <div className="flex justify-between items-start">

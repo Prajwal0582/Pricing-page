@@ -15,8 +15,10 @@ const PLAN_META = {
   team: { seats: 5, includedCredits: 500, monthly: 299, annualList: 3588, annualPay: 2990 },
 } as const;
 
-/** Extra credits beyond plan inclusion — $0.10 each per month (prototype rate). */
-const CREDIT_RATE_MONTHLY = 0.1;
+/** Extra credits beyond plan inclusion — same $0.15/credit rate as the pricing page. */
+const CREDIT_RATE_MONTHLY = 0.15;
+/** Annual billing adds 1,000 bonus credits on plans that include credits (Pro, Team) — not Basic. */
+const ANNUAL_BONUS = 1000;
 const CREDIT_MAX = 5000;
 const CREDIT_STEP = 50;
 const ADDON_MONTHLY = 50;
@@ -122,7 +124,9 @@ export default function SubscriptionCheckoutView({
   const plan = PLANS.find((p) => p.id === planId)!;
   const meta = PLAN_META[planId];
   const [billing, setBilling] = useState<BillingPeriod>(initialBilling);
-  const [credits, setCredits] = useState<number>(Math.max(meta.includedCredits, meta.includedCredits === 0 ? 500 : meta.includedCredits));
+  // Start at what the plan includes (Basic: 0) — extra credits are opt-in.
+  const [credits, setCredits] = useState<number>(meta.includedCredits);
+  const hasBonus = meta.includedCredits > 0;
   const [buyerIntent, setBuyerIntent] = useState(false);
   const [purchaseSignals, setPurchaseSignals] = useState(false);
   const [termsAgreed, setTermsAgreed] = useState(true);
@@ -212,7 +216,9 @@ export default function SubscriptionCheckoutView({
               <p className="mt-1 text-xs font-normal leading-[18px] text-[#667085]">
                 {meta.includedCredits === 0
                   ? "Your selected plan does not include any shared credits. Add credits anytime before checkout"
-                  : `Your ${plan.name} plan includes ${meta.includedCredits.toLocaleString()} credits/month. Adjust if you need more.`}
+                  : billing === "annual"
+                    ? `Your ${plan.name} plan includes ${meta.includedCredits.toLocaleString()} credits/month (${(meta.includedCredits * 12).toLocaleString()}/yr, provided upfront) + ${ANNUAL_BONUS.toLocaleString()} annual bonus credits. Adjust if you need more.`
+                    : `Your ${plan.name} plan includes ${meta.includedCredits.toLocaleString()} credits/month. Adjust if you need more.`}
               </p>
             </div>
 
@@ -268,7 +274,9 @@ export default function SubscriptionCheckoutView({
                   </div>
                   <div className="mt-2 inline-flex h-6 items-center rounded bg-[#F2F9F7] px-2">
                     <p className="text-xs font-medium leading-[18px] text-[#0D7867]">
-                      Upfront payment for 10 months + get 1000 bonus credits
+                      {hasBonus
+                        ? `Upfront payment for 10 months + get ${ANNUAL_BONUS.toLocaleString()} bonus credits`
+                        : "Upfront payment for 10 months"}
                     </p>
                   </div>
                 </button>
@@ -401,7 +409,13 @@ export default function SubscriptionCheckoutView({
               <div className="flex flex-col gap-3">
                 <div className="flex items-start gap-0.5">
                   <p className="flex-1 text-base font-medium leading-6 text-[#344054]">
-                    {plan.name} Plan ({credits.toLocaleString()} credits · {meta.seats} seat
+                    {plan.name} Plan (
+                    {meta.includedCredits === 0
+                      ? "no credits included"
+                      : billing === "annual"
+                        ? `${(meta.includedCredits * 12).toLocaleString()} credits/yr`
+                        : `${meta.includedCredits.toLocaleString()} credits/mo`}{" "}
+                    · {meta.seats} seat
                     {meta.seats > 1 ? "s" : ""})
                   </p>
                   <MoneyParts amount={planList} />
@@ -462,10 +476,12 @@ export default function SubscriptionCheckoutView({
                         -{formatMoney(savings)}
                       </span>
                     </div>
-                    <div className="flex items-start gap-0.5">
-                      <p className="flex-1 text-base font-normal leading-6 text-[#344054]">Bonus credits</p>
-                      <span className="text-lg font-semibold leading-7 text-[#0D7867]">+1,000</span>
-                    </div>
+                    {hasBonus && (
+                      <div className="flex items-start gap-0.5">
+                        <p className="flex-1 text-base font-normal leading-6 text-[#344054]">Bonus credits</p>
+                        <span className="text-lg font-semibold leading-7 text-[#0D7867]">+{ANNUAL_BONUS.toLocaleString()}</span>
+                      </div>
+                    )}
                   </>
                 )}
 

@@ -1,9 +1,19 @@
 interface PurchaseSuccessViewProps {
   onViewList: () => void;
   onNewSearch: () => void;
+  /** The purchased list — name, record count and amount paid come from checkout. */
+  listName?: string;
+  recordCount?: number;
+  amountPaid?: number;
 }
 
-export default function PurchaseSuccessView({ onViewList, onNewSearch }: PurchaseSuccessViewProps) {
+export default function PurchaseSuccessView({
+  onViewList,
+  onNewSearch,
+  listName = "Restaurants in Texas",
+  recordCount = 12931,
+  amountPaid,
+}: PurchaseSuccessViewProps) {
   return (
     <div className="flex flex-col h-full items-center justify-center px-6">
       <div className="bg-white border border-[#eaecf0] rounded-2xl p-10 max-w-md w-full text-center shadow-sm">
@@ -14,9 +24,14 @@ export default function PurchaseSuccessView({ onViewList, onNewSearch }: Purchas
         </div>
         <h1 className="text-xl font-semibold text-[#1d2939] mb-2">Purchase complete!</h1>
         <p className="text-sm text-[#475467] mb-1">
-          Your list of <strong>11,029 Texas restaurants</strong> has been purchased and saved.
+          Your list <strong>{listName}</strong> ({recordCount.toLocaleString()} records) has been purchased and saved.
         </p>
         <p className="text-sm text-[#475467] mb-6">
+          {amountPaid !== undefined && (
+            <>
+              Amount paid: <strong>${amountPaid.toLocaleString("en-US")}.00</strong> ·{" "}
+            </>
+          )}
           Full contact and business details are now available.
         </p>
 
