@@ -17,27 +17,14 @@ const params = new URLSearchParams(window.location.search);
 params.set("option", "b3");
 params.set("groups", "sections");
 params.delete("v");
+params.delete("drawer");
 window.history.replaceState(null, "", `${window.location.pathname}?${params}`);
 
 type View = "plans" | "subscription-checkout" | "purchase" | "purchase-success";
 
-/** How the pricing drawer opens over the app — review-only switch (?drawer=sheet|side|zoom). */
-type DrawerMotion = "sheet" | "side" | "zoom";
-const DRAWER_MOTIONS: { id: DrawerMotion; label: string }[] = [
-  { id: "sheet", label: "Sheet" },
-  { id: "side", label: "Side" },
-  { id: "zoom", label: "Zoom" },
-];
-const readMotion = (): DrawerMotion => {
-  const v = new URLSearchParams(window.location.search).get("drawer");
-  return v === "side" || v === "zoom" ? v : "sheet";
-};
 
-const PANEL_BOX: Record<DrawerMotion, string> = {
-  sheet: "inset-x-3 top-3 bottom-0 rounded-t-2xl sm:inset-x-6",
-  side: "right-0 top-0 bottom-0 w-[min(1440px,calc(100vw-48px))] rounded-l-2xl",
-  zoom: "inset-3 rounded-2xl sm:inset-6",
-};
+/** Pricing opens as a sheet that slides up over the app, like the Settings panel. */
+const SHEET_BOX = "inset-x-3 top-3 bottom-0 rounded-t-2xl sm:inset-x-6";
 
 /** Simplified Salesgenie app behind the drawer — pricing opens on top of it like the Settings panel. */
 function AppBackdrop({ onOpenPlans }: { onOpenPlans: () => void }) {
@@ -106,7 +93,6 @@ export default function PricingApp() {
   const [plan, setPlan] = useState<{ id: Exclude<PlanId, "buy-list">; billing: BillingPeriod }>({ id: "pro", billing: "annual" });
   const [list, setList] = useState<ListPurchaseContext | null>(null);
   const [toast, setToast] = useState<string | null>(null);
-  const [motion, setMotion] = useState<DrawerMotion>(readMotion);
   const [drawer, setDrawer] = useState<"open" | "closing" | "closed">("open");
 
   function openDrawer() {
@@ -116,15 +102,6 @@ export default function PricingApp() {
   function closeDrawer() {
     setDrawer("closing");
     window.setTimeout(() => setDrawer("closed"), 280);
-  }
-  function changeMotion(next: DrawerMotion) {
-    setMotion(next);
-    const url = new URL(window.location.href);
-    url.searchParams.set("drawer", next);
-    window.history.replaceState(null, "", url);
-    // Replay the opening so each motion can be compared.
-    setDrawer("closed");
-    window.setTimeout(() => setDrawer("open"), 60);
   }
 
   useEffect(() => {
@@ -159,8 +136,8 @@ export default function PricingApp() {
           <div
             role="region"
             aria-label="Plans and pricing"
-            className={`absolute overflow-hidden bg-white shadow-2xl ${PANEL_BOX[motion]} ${
-              drawer === "closing" ? `drawer-${motion}-out` : `drawer-${motion}-in`
+            className={`absolute overflow-hidden bg-white shadow-2xl ${SHEET_BOX} ${
+              drawer === "closing" ? "drawer-sheet-out" : "drawer-sheet-in"
             }`}
           >
             <button
@@ -225,24 +202,6 @@ export default function PricingApp() {
             onViewList={backToPlans}
             onNewSearch={backToPlans}
           />
-        </div>
-      )}
-      {view === "plans" && (
-        <div className="fixed bottom-4 left-4 z-[60] flex items-center gap-1 rounded-xl bg-[#1D2939] p-1.5 text-white shadow-lg">
-          <span className="px-2 text-[11px] font-semibold uppercase tracking-wide text-[#98A2B3]">Drawer</span>
-          {DRAWER_MOTIONS.map((m) => (
-            <button
-              key={m.id}
-              type="button"
-              aria-pressed={m.id === motion}
-              onClick={() => changeMotion(m.id)}
-              className={`h-7 rounded-lg px-3 text-xs font-medium ${
-                m.id === motion ? "bg-white text-[#1D2939]" : "text-[#D0D5DD] hover:bg-white/10"
-              }`}
-            >
-              {m.label}
-            </button>
-          ))}
         </div>
       )}
       {toast && (

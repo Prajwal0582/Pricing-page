@@ -130,7 +130,7 @@ body {
   .animate-plan-rise { animation: none; }
 }
 
-/* Pricing drawer — opens over the app like the Settings panel (sheet / side / zoom motions) */
+/* Pricing drawer — slides up over the app like the Settings panel */
 @keyframes drawer-backdrop {
   from { opacity: 0; }
   to { opacity: 1; }
@@ -139,22 +139,10 @@ body {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
 }
-@keyframes drawer-side {
-  from { transform: translateX(100%); }
-  to { transform: translateX(0); }
-}
-@keyframes drawer-zoom {
-  from { opacity: 0; transform: translateY(16px) scale(0.97); }
-  to { opacity: 1; transform: translateY(0) scale(1); }
-}
 .drawer-backdrop-in { animation: drawer-backdrop 320ms ease-out both; }
 .drawer-backdrop-out { animation: drawer-backdrop 240ms ease-in reverse both; }
 .drawer-sheet-in { animation: drawer-sheet 520ms cubic-bezier(0.22, 1, 0.36, 1) both; }
 .drawer-sheet-out { animation: drawer-sheet 280ms cubic-bezier(0.4, 0, 1, 1) reverse both; }
-.drawer-side-in { animation: drawer-side 480ms cubic-bezier(0.22, 1, 0.36, 1) both; }
-.drawer-side-out { animation: drawer-side 260ms cubic-bezier(0.4, 0, 1, 1) reverse both; }
-.drawer-zoom-in { animation: drawer-zoom 380ms cubic-bezier(0.22, 1, 0.36, 1) both; }
-.drawer-zoom-out { animation: drawer-zoom 220ms ease-in reverse both; }
 @media (prefers-reduced-motion: reduce) {
   [class*="drawer-"] { animation-duration: 1ms !important; }
 }
