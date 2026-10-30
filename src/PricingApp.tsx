@@ -185,6 +185,7 @@ export default function PricingApp() {
           onBuyListCheckout={() => setView("purchase")}
           hideOptionSwitcher
           salesConfirmInline
+          scrollHint
         />
           </div>
         </div>

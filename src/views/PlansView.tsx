@@ -6,6 +6,7 @@ import { PackageFirstLayout } from "./pricing/PackageFirstLayout";
 import TalkToSalesModal from "./pricing/TalkToSalesModal";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faCircleCheck } from "@fortawesome/free-regular-svg-icons";
+import { faChevronDown } from "@fortawesome/free-solid-svg-icons";
 import { GENIE_SHADOW_SM } from "./pricing/pricingTypes";
 import type { GroupStyle, PricingOption } from "./pricing/creditValue";
 import { GROUP_STYLES, PRICING_OPTIONS, groupsPlans, hidesGoalPicker } from "./pricing/creditValue";
@@ -21,6 +22,8 @@ interface PlansViewProps {
   hideOptionSwitcher?: boolean;
   /** Talk to sales / Request a call send the request straight away and confirm inline (no popup). */
   salesConfirmInline?: boolean;
+  /** Drawer presentation: hide the scrollbar and show a floating "Scroll to view more" nudge. */
+  scrollHint?: boolean;
 }
 
 function readOptionParam(): PricingOption {
@@ -112,6 +115,7 @@ export default function PlansView({
   onBuyListCheckout,
   hideOptionSwitcher = false,
   salesConfirmInline = false,
+  scrollHint = false,
 }: PlansViewProps) {
   const isPurchaseMode = Boolean(purchaseContext);
   const contextDefaultPlan: PlanId = isPurchaseMode ? "buy-list" : "pro";
@@ -124,6 +128,8 @@ export default function PlansView({
   const [salesTopic, setSalesTopic] = useState<"seats" | "general" | null>(null);
   const salesOpen = salesTopic !== null;
   const [salesRequested, setSalesRequested] = useState(false);
+  // Nudge shows at the top of the page and fades once the user scrolls.
+  const [atTop, setAtTop] = useState(true);
   const [salesToast, setSalesToast] = useState(false);
 
   function requestSales(topic: "seats" | "general") {
@@ -233,7 +239,12 @@ export default function PlansView({
   const buyListCta = isPurchaseMode ? "Proceed to checkout →" : b3 ? "Build my list →" : "Search for leads →";
 
   return (
-    <div className={`h-full w-full overflow-y-auto overflow-x-hidden ${option === "b3" ? "bg-white" : "bg-[#F2F4F7]"}`}>
+    <div
+      className={`h-full w-full overflow-y-auto overflow-x-hidden ${option === "b3" ? "bg-white" : "bg-[#F2F4F7]"} ${
+        scrollHint ? "no-scrollbar" : ""
+      }`}
+      onScroll={scrollHint ? (e) => setAtTop(e.currentTarget.scrollTop < 80) : undefined}
+    >
       <PackageFirstLayout
         billing={billing}
         goal={goal}
@@ -266,6 +277,24 @@ export default function PlansView({
           groupStyle={groupStyle}
           onGroupStyleChange={changeGroupStyle}
         />
+      )}
+      {scrollHint && (
+        <div
+          aria-hidden={!atTop}
+          className={`pointer-events-none fixed bottom-6 left-1/2 z-30 -translate-x-1/2 transition-all duration-300 ${
+            atTop ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
+          }`}
+        >
+          <div
+            className="flex items-center gap-2 rounded-full border border-[#EAECF0] bg-white/95 py-2 pl-4 pr-3 text-sm font-medium text-[#344054] backdrop-blur"
+            style={{ boxShadow: GENIE_SHADOW_SM }}
+          >
+            Scroll to view more
+            <span className="flex size-6 items-center justify-center rounded-full bg-[#F0F9FF] text-[#008DC3]">
+              <FontAwesomeIcon icon={faChevronDown} className="animate-scroll-nudge text-[12px]" />
+            </span>
+          </div>
+        </div>
       )}
       {salesTopic && <TalkToSalesModal topic={salesTopic} onClose={() => setSalesTopic(null)} />}
       {salesToast && (
