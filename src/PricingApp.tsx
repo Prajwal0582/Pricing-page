@@ -11,11 +11,11 @@ import PurchaseSuccessView from "./views/PurchaseSuccessView";
 import { GENIE_SHADOW_SM } from "./views/pricing/pricingTypes";
 import { ANNUAL_BONUS_CREDITS } from "./views/pricing/creditValue";
 
-// This review build always shows B3 (Value focused) with the group label inside each card (no group
-// toggle); no option switcher. Talk to sales / Request a call confirm with a toast (no popup).
+// This review build always shows B3 (Value focused) in labelled sections (Individual / Team /
+// One-time, no group toggle); no option switcher. Talk to sales / Request a call confirm with a toast (no popup).
 const params = new URLSearchParams(window.location.search);
 params.set("option", "b3");
-params.set("groups", "inline");
+params.set("groups", "sections");
 params.delete("v");
 window.history.replaceState(null, "", `${window.location.pathname}?${params}`);
 
