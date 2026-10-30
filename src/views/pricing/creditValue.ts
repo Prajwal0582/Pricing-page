@@ -35,6 +35,9 @@ export const groupsPlans = (o: PricingOption) => o === "b3";
 /** Options without the "Tell us your goal" picker (no auto-recommended plan). */
 export const hidesGoalPicker = (o: PricingOption) => o === "b3";
 
+/** Phase 1 ships without the 1,000 annual bonus credits (set to 1000 when phase 2 lands). */
+export const ANNUAL_BONUS_CREDITS = 0;
+
 /** Ad hoc (pay-as-you-go) credit rate available to Basic users. */
 export const PAYG_CREDIT_RATE = 0.15;
 
@@ -50,8 +53,8 @@ export function creditValue(billing: BillingPeriod) {
   const proPrice = planPrice("pro", billing);
   return {
     included,
-    /** Annual billing adds 1,000 bonus credits on top of the included credits. */
-    bonus: billing === "annual" ? 1000 : 0,
+    /** Annual bonus credits — phase 2 (needs NXG ↔ OES automation); not shown in phase 1. */
+    bonus: billing === "annual" ? ANNUAL_BONUS_CREDITS : 0,
     basicPrice,
     proPrice,
     difference: proPrice - basicPrice,

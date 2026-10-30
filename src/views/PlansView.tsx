@@ -233,7 +233,7 @@ export default function PlansView({
   const buyListCta = isPurchaseMode ? "Proceed to checkout →" : b3 ? "Build my list →" : "Search for leads →";
 
   return (
-    <div className={`h-screen w-full overflow-y-auto overflow-x-hidden ${option === "b3" ? "bg-white" : "bg-[#F2F4F7]"}`}>
+    <div className={`h-full w-full overflow-y-auto overflow-x-hidden ${option === "b3" ? "bg-white" : "bg-[#F2F4F7]"}`}>
       <PackageFirstLayout
         billing={billing}
         goal={goal}

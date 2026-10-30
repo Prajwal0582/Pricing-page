@@ -25,9 +25,11 @@ export interface FeatureItem {
   expandable?: boolean;
   /** Start expanded (e.g. Buy list subscription features) */
   defaultExpanded?: boolean;
-  children?: { label: string; info?: boolean }[];
+  children?: { label: string; info?: boolean; usesCredits?: boolean }[];
   /** Available with credits (not blocked) — shown with the credits icon instead of a cross. */
   credit?: boolean;
+  /** Uses credits — marked with an asterisk and explained once under the feature list. */
+  usesCredits?: boolean;
 }
 
 export interface PlanDefinition {
@@ -85,11 +87,11 @@ export const PLANS: PlanDefinition[] = [
     notIncludedTitle: "Not Included",
     notIncludedItems: [
       { label: "Credits (requires additional purchase)", credit: true },
-      { label: "Export leads (uses credits)", credit: true },
-      { label: "Email unlocks (uses credits)", credit: true },
-      { label: "Email Campaigns (uses credits)", credit: true },
-      { label: "MCP (uses credits)", info: true, credit: true },
-      { label: "CRM integration (uses credits)", info: true, credit: true },
+      { label: "Export leads", credit: true, usesCredits: true },
+      { label: "Email unlocks", credit: true, usesCredits: true },
+      { label: "Email campaigns", credit: true, usesCredits: true },
+      { label: "MCP integration", info: true, credit: true, usesCredits: true },
+      { label: "CRM export", info: true, credit: true, usesCredits: true },
     ],
     addons: [
       { label: "Consumer cellphone", info: true },
@@ -138,12 +140,10 @@ export const PLANS: PlanDefinition[] = [
         ],
       },
       { label: "Credits (500/month)" },
-      { label: "Export leads (uses credits)" },
-      { label: "Email unlocks (uses credits)" },
-      { label: "Email Campaigns (uses credits)" },
-      { label: "MCP integration", info: true },
-      { label: "CRM integration", info: true },
-      { label: "Direct mail campaigns", info: true },
+      { label: "Export leads", usesCredits: true },
+      { label: "Email unlocks", usesCredits: true },
+      { label: "Email campaigns", usesCredits: true },
+      { label: "CRM export", info: true, usesCredits: true },
     ],
     notIncludedTitle: "Not Included",
     notIncludedItems: [
@@ -190,19 +190,16 @@ export const PLANS: PlanDefinition[] = [
         expandable: true,
         children: [
           { label: "Credits (500/month)" },
-          { label: "Export leads (uses credits)" },
-          { label: "Email unlocks (uses credits)" },
-          { label: "Email Campaigns (uses credits)" },
-          { label: "MCP integration", info: true },
-          { label: "CRM integration", info: true },
-          { label: "Direct mail campaigns", info: true },
+          { label: "Export leads", usesCredits: true },
+          { label: "Email unlocks", usesCredits: true },
+          { label: "Email campaigns", usesCredits: true },
+          { label: "CRM export", info: true, usesCredits: true },
         ],
       },
       { label: "5 user licenses included" },
       { label: "Assign leads to team members" },
       { label: "Track team activities" },
       { label: "Team performance reporting" },
-      { label: "MCP integration", info: true },
       { label: "Admin oversight" },
       { label: "Centralized lead management" },
       { label: "Priority account support" },
@@ -368,7 +365,7 @@ export const FEATURE_TOOLTIPS: Record<string, string> = {
   "Direct mail marketing":
     "Additional charge for postage, billed separately from credits, paid at time of send",
   "CRM integration": "CRM integration allows you to export data directly to your CRM",
-  "CRM integration (uses credits)": "Connect your CRM anytime; exporting each record to it uses one credit",
+  "CRM export": "Connect your CRM anytime; exporting each record to it uses one credit",
   "CRM Integration": "CRM integration allows you to export data directly to your CRM",
   "MCP (uses credits)":
     "Access Salesgenie in Claude or ChatGPT through MCP. Setup is available; prospecting actions use credits.",

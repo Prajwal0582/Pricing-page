@@ -17,8 +17,8 @@ const PLAN_META = {
 
 /** Extra credits beyond plan inclusion — same $0.15/credit rate as the pricing page. */
 const CREDIT_RATE_MONTHLY = 0.15;
-/** Annual billing adds 1,000 bonus credits on plans that include credits (Pro, Team) — not Basic. */
-const ANNUAL_BONUS = 1000;
+/** Annual bonus credits on Pro / Team — phase 2 (needs NXG ↔ OES automation); 0 in phase 1. */
+const ANNUAL_BONUS = 0;
 const CREDIT_MAX = 5000;
 const CREDIT_STEP = 50;
 const ADDON_MONTHLY = 50;
@@ -126,7 +126,7 @@ export default function SubscriptionCheckoutView({
   const [billing, setBilling] = useState<BillingPeriod>(initialBilling);
   // Start at what the plan includes (Basic: 0) — extra credits are opt-in.
   const [credits, setCredits] = useState<number>(meta.includedCredits);
-  const hasBonus = meta.includedCredits > 0;
+  const hasBonus = ANNUAL_BONUS > 0 && meta.includedCredits > 0;
   const [buyerIntent, setBuyerIntent] = useState(false);
   const [purchaseSignals, setPurchaseSignals] = useState(false);
   const [termsAgreed, setTermsAgreed] = useState(true);
@@ -217,7 +217,7 @@ export default function SubscriptionCheckoutView({
                 {meta.includedCredits === 0
                   ? "Your selected plan does not include any shared credits. Add credits anytime before checkout"
                   : billing === "annual"
-                    ? `Your ${plan.name} plan includes ${meta.includedCredits.toLocaleString()} credits/month (${(meta.includedCredits * 12).toLocaleString()}/yr, provided upfront) + ${ANNUAL_BONUS.toLocaleString()} annual bonus credits. Adjust if you need more.`
+                    ? `Your ${plan.name} plan includes ${meta.includedCredits.toLocaleString()} credits/month (${(meta.includedCredits * 12).toLocaleString()}/yr, provided upfront)${hasBonus ? ` + ${ANNUAL_BONUS.toLocaleString()} annual bonus credits` : ""}. Adjust if you need more.`
                     : `Your ${plan.name} plan includes ${meta.includedCredits.toLocaleString()} credits/month. Adjust if you need more.`}
               </p>
             </div>

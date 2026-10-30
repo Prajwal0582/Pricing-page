@@ -84,6 +84,15 @@ function CreditIcon() {
   );
 }
 
+/** Asterisk on features that use credits — explained once in the note under the list. */
+function CreditMark() {
+  return (
+    <span className="ml-0.5 font-semibold text-[#008DC3]" aria-label="uses credits">
+      *
+    </span>
+  );
+}
+
 function PlusIcon() {
   return (
     <svg viewBox="0 0 14 14" fill="none" className="size-3.5 shrink-0 text-[#0BA38C]" aria-hidden>
@@ -182,6 +191,7 @@ function FeatureRows({
                 <div className="pt-0.5"><RowIcon /></div>
                 <span className={`text-sm leading-5 text-[#475467] flex-1 ${item.bold ? "font-semibold" : "font-normal"}`}>
                   {item.label}
+                  {item.usesCredits && <CreditMark />}
                 </span>
                 {tip ? <InfoTip text={tip} /> : item.info ? <InfoIcon /> : null}
                 <ChevronIcon expanded={isOpen} />
@@ -191,6 +201,7 @@ function FeatureRows({
                 <div className="pt-0.5"><RowIcon /></div>
                 <span className={`text-sm leading-5 text-[#475467] flex-1 ${item.bold ? "font-semibold" : "font-normal"}`}>
                   {item.label}
+                  {item.usesCredits && <CreditMark />}
                 </span>
                 {tip ? <InfoTip text={tip} /> : item.info ? <InfoIcon /> : null}
               </div>
@@ -198,7 +209,10 @@ function FeatureRows({
             {isExpandable && isOpen && item.children?.map((child) => (
               <div key={child.label} className="flex items-start gap-2 pl-6">
                 <div className="pt-0.5"><Icon /></div>
-                <span className="text-sm font-normal leading-5 text-[#475467] flex-1">{child.label}</span>
+                <span className="text-sm font-normal leading-5 text-[#475467] flex-1">
+                  {child.label}
+                  {child.usesCredits && <CreditMark />}
+                </span>
                 {child.info && resolveTooltip(child.label) ? (
                   <InfoTip text={resolveTooltip(child.label)!} />
                 ) : null}
@@ -208,6 +222,22 @@ function FeatureRows({
         );
       })}
     </>
+  );
+}
+
+/** One-line explanation for the asterisked features (B3). */
+function CreditsFootnote({ plan }: { plan: (typeof PLANS)[number] }) {
+  const rows = [...plan.includedItems, ...(plan.notIncludedItems ?? [])];
+  const marked = rows.some((r) => r.usesCredits || r.children?.some((c) => c.usesCredits));
+  if (!marked) return null;
+  const basic = plan.id === "basic";
+  return (
+    <p className="mt-1 text-xs leading-[18px] text-[#667085]">
+      <span className="font-semibold text-[#008DC3]">*</span>{" "}
+      {basic
+        ? "Available on Basic: you'll need credits to use these (buy as you go at $0.15 each)."
+        : "Uses your plan's credits. Need more? Add credits anytime at $0.15 each."}
+    </p>
   );
 }
 
@@ -266,6 +296,7 @@ function PlanFeatureChecklist({
             onToggle={onToggle}
           />
         )}
+        {compact && <CreditsFootnote plan={plan} />}
       </div>
       {!compact && plan.notIncludedItems && plan.notIncludedItems.length > 0 && (
         <div className={`flex flex-col ${sectionGap}`}>
@@ -852,7 +883,8 @@ function PlanPriceV3({
         }
       : {
           icon: faUsers,
-            title: `${credits}, shared by the whole team`,
+            // Credits are tied to seats today (100/user/month), so say "across 5 users", not "shared".
+            title: `${credits} across 5 users`,
             points: [
               "Credits power exports, email unlocks, campaigns, MCP and CRM integrations.",
               <>
@@ -864,6 +896,7 @@ function PlanPriceV3({
 
   return (
     <div className="flex flex-col">
+      <p className="text-xs font-medium leading-[18px] text-[#667085]">Starting at</p>
       <div className="flex flex-wrap items-end gap-x-2 font-semibold text-[#1D2939]">
         <p className="inline-flex items-start tracking-[-0.72px]">
           <span className="text-xl leading-[30px] mt-1">$</span>
@@ -906,8 +939,8 @@ function ProCreditSummary({ billing }: { billing: PricingLayoutProps["billing"] 
           <FontAwesomeIcon icon={faCoins} className="text-[14px]" />
         </span>
         <p className="min-w-0 flex-1 text-sm font-semibold leading-5 text-[#1D2939]">
-          {fmtNumber(total)} credits{annual ? "/yr" : "/mo included"}
-          {annual && (
+          {fmtNumber(total)} credits{annual ? "/yr" : "/mo"}
+          {annual && v.bonus > 0 && (
             <span className="block text-xs font-medium leading-[18px] text-[#667085]">
               (incl. {fmtNumber(v.bonus)} annual bonus)
             </span>
@@ -984,10 +1017,15 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
   const categoryRow = (planId: PlanId, category: string) => (
     <>
       {iconTiles && <IconTile group={groupOf(planId)} neutral={trayMode} />}
-      <div className={`flex items-center justify-between gap-2 ${compact && billing === "annual" && planId !== "buy-list" ? "pr-20" : ""}`}>
-        <p className="text-xs font-medium uppercase leading-[18px] text-[#667085]">{category}</p>
-        {inCardTags && <GroupTag group={groupOf(planId)} />}
-      </div>
+      {/* Group label sits on its own line, clear of the Save 17% ribbon. */}
+      {inCardTags && (
+        <div className="mb-1">
+          <GroupTag group={groupOf(planId)} />
+        </div>
+      )}
+      <p className={`text-xs font-medium uppercase leading-[18px] text-[#667085] ${compact && billing === "annual" && planId !== "buy-list" ? "pr-16" : ""}`}>
+        {category}
+      </p>
     </>
   );
   function cardMotion(planId: PlanId, isSelected: boolean) {
@@ -1045,9 +1083,9 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
   return (
     <>
       {/* Responsive inset: tight on phone, full desktop padding */}
-      <div className={`w-full px-4 sm:px-6 lg:px-10 ${compact ? "xl:px-10 2xl:px-20" : "xl:px-16 2xl:px-28"} pt-4 sm:pt-6 pb-16 sm:pb-20`}>
+      <div className={`w-full px-4 sm:px-6 lg:px-10 ${compact ? "xl:px-10 2xl:px-20" : "xl:px-16 2xl:px-28"} ${compact ? "pt-4" : "pt-4 sm:pt-6"} pb-16 sm:pb-20`}>
         {/* One panel: context + billing + annual offer (no floating billing row) */}
-        <div data-pricing-header className="w-full">
+        <div data-pricing-header className={compact ? "mx-auto w-full max-w-[1120px]" : "w-full"}>
           <div
             className={`relative w-full bg-white border border-l-8 border-l-[#79C1E9] rounded-lg overflow-visible ${
               compact ? "border-[#79C1E9]" : "border-[#D0D5DD]"
@@ -1056,6 +1094,7 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
           >
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-8 px-4 py-4 sm:px-6 md:px-8">
               <div className="flex items-center gap-3 min-w-0 lg:max-w-[55%]">
+                {!compact && (
                 <button
                   type="button"
                   onClick={onBack}
@@ -1066,6 +1105,7 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
                     <path d="M10 3.5L5.5 8 10 12.5" strokeLinecap="round" strokeLinejoin="round" />
                   </svg>
                 </button>
+                )}
                 <div className="min-w-0">
                   <h1 className={`font-semibold text-[#1D2939] ${compact ? "text-xl leading-[30px]" : "text-xl sm:text-2xl leading-7 sm:leading-8"}`}>
                     Choose the <span className="text-[#008DC3]">right plan</span> for your business
@@ -1119,7 +1159,7 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
                     <FontAwesomeIcon icon={faCircleCheck} className="text-[14px]" />
                   </span>
                   <p className="text-xs font-medium leading-[18px] text-[#026B5C]">
-                    Pay only for 10 months and get 12 months access + 1,000 bonus credits on Pro and Team.
+                    Pay only for 10 months and get 12 months of access.
                   </p>
                 </div>
               </div>
