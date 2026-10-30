@@ -820,19 +820,27 @@ function CreditSummary({
   icon,
   title,
   points,
+  chip,
 }: {
   icon: IconDefinition;
   title: string;
   points: ReactNode[];
+  /** Optional green saving chip on the title row (same as Pro's). */
+  chip?: string;
 }) {
   return (
     <div className="mt-4 rounded-lg border border-[#EAECF0] bg-[#F9FAFB] px-3 py-3">
-      <p className="flex items-center gap-2 text-sm font-semibold leading-5 text-[#1D2939]">
-        <span className="flex size-5 shrink-0 items-center justify-center text-[#008DC3]" aria-hidden>
+      <div className="flex items-start gap-2">
+        <span className="flex h-5 w-5 shrink-0 items-center justify-center text-[#008DC3]" aria-hidden>
           <FontAwesomeIcon icon={icon} className="text-[14px]" />
         </span>
-        {title}
-      </p>
+        <p className="min-w-0 flex-1 text-sm font-semibold leading-5 text-[#1D2939]">{title}</p>
+        {chip && (
+          <span className="shrink-0 rounded-md bg-[#0D7867] px-1.5 text-xs font-semibold leading-5 text-white">
+            {chip}
+          </span>
+        )}
+      </div>
       <ul className="mt-1.5 flex flex-col gap-1">
         {points.map((point, i) => (
           <li key={i} className="flex items-start gap-2 text-xs leading-[18px] text-[#475467]">
@@ -885,6 +893,10 @@ function PlanPriceV3({
           icon: faUsers,
             // Credits are tied to seats today (100/user/month), so say "across 5 users", not "shared".
             title: `${credits} across 5 users`,
+            // Same 6,000 credits as Pro, so the same extra saving.
+            chip: annual
+              ? `Save extra ${fmtMoney((v.included + v.bonus) * PAYG_CREDIT_RATE - v.difference)}`
+              : `Save ${fmtMoney((v.included + v.bonus) * PAYG_CREDIT_RATE - v.difference)}/mo`,
             points: [
               "Credits power exports, email unlocks, campaigns, MCP and CRM integrations.",
               <>
