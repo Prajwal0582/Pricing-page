@@ -72,14 +72,13 @@ function XIcon() {
   return <GlyphBox icon={faCircleXmark} className="block text-[14px] text-[#C55418]" />;
 }
 
-/** Available with credits — a filled brand-blue coin (not a cross: the feature isn't blocked). */
+/** Available with credits — a brand-blue coin in an outlined circle (not a cross: the feature isn't blocked). */
 function CreditIcon() {
   return (
-    <span
-      title="Available with credits"
-      className="flex size-3.5 shrink-0 items-center justify-center rounded-full bg-[#008DC3] text-white"
-    >
-      <FontAwesomeIcon icon={faCoins} className="text-[7px]" aria-hidden />
+    <span title="Available with credits" className="flex size-3.5 shrink-0 items-center justify-center">
+      <span className="flex size-[12.25px] items-center justify-center rounded-full border-[1.3px] border-[#008DC3] text-[#008DC3]">
+        <FontAwesomeIcon icon={faCoins} className="block text-[6px]" aria-hidden />
+      </span>
     </span>
   );
 }
