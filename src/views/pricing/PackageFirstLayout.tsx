@@ -65,7 +65,7 @@ function GlyphBox({ icon, className }: { icon: IconDefinition; className: string
 }
 
 function CheckIcon() {
-  return <GlyphBox icon={faCircleCheckSolid} className="block text-[14px] text-[#0BA38C]" />;
+  return <GlyphBox icon={faCircleCheck} className="block text-[14px] text-[#0BA38C]" />;
 }
 
 function XIcon() {
@@ -84,9 +84,15 @@ function CreditIcon() {
   );
 }
 
-/** Data access rows — a gray database glyph, so data sets read differently from features. */
+/** Data access rows — a gray database glyph in an outlined circle (same ring as the check and cross). */
 function DatabaseIcon() {
-  return <GlyphBox icon={faDatabase} className="block text-[13px] text-[#667085]" />;
+  return (
+    <span className="flex size-3.5 shrink-0 items-center justify-center">
+      <span className="flex size-[12.25px] items-center justify-center rounded-full border-[1.3px] border-[#667085] text-[#667085]">
+        <FontAwesomeIcon icon={faDatabase} className="block text-[6px]" aria-hidden />
+      </span>
+    </span>
+  );
 }
 
 const ASTERISK_RED = "text-[#D92D20]";
