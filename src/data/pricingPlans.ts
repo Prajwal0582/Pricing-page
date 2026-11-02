@@ -25,6 +25,8 @@ export interface FeatureItem {
   expandable?: boolean;
   /** Start expanded (e.g. Buy list subscription features) */
   defaultExpanded?: boolean;
+  /** Always expanded, no toggle (e.g. Pro's "Everything in Basic") */
+  alwaysOpen?: boolean;
   children?: { label: string; info?: boolean; usesCredits?: boolean }[];
   /** Available with credits (not blocked) — shown with the credits icon instead of a cross. */
   credit?: boolean;
@@ -86,7 +88,6 @@ export const PLANS: PlanDefinition[] = [
     ],
     notIncludedTitle: "Not Included",
     notIncludedItems: [
-      { label: "Credits (requires additional purchase)", credit: true },
       { label: "Export leads", credit: true, usesCredits: true },
       { label: "Email unlocks", credit: true, usesCredits: true },
       { label: "Email campaigns", credit: true, usesCredits: true },
@@ -132,6 +133,7 @@ export const PLANS: PlanDefinition[] = [
         label: "Everything in Basic",
         bold: true,
         expandable: true,
+        alwaysOpen: true,
         children: [
           { label: "Weekly data refresh" },
           { label: "Customer profile analysis" },
@@ -140,16 +142,10 @@ export const PLANS: PlanDefinition[] = [
         ],
       },
       { label: "Credits (500/month)" },
-      { label: "Export leads", usesCredits: true },
-      { label: "Email unlocks", usesCredits: true },
-      { label: "Email campaigns", usesCredits: true },
-      { label: "CRM export", info: true, usesCredits: true },
-    ],
-    notIncludedTitle: "Not Included",
-    notIncludedItems: [
-      { label: "Team management" },
-      { label: "Lead assignment & team reporting" },
-      { label: "Additional user license" },
+      { label: "Export leads" },
+      { label: "Email unlocks" },
+      { label: "Email campaigns" },
+      { label: "CRM export", info: true },
     ],
     addons: [
       { label: "Consumer cellphone", info: true },
@@ -190,10 +186,10 @@ export const PLANS: PlanDefinition[] = [
         expandable: true,
         children: [
           { label: "Credits (500/month)" },
-          { label: "Export leads", usesCredits: true },
-          { label: "Email unlocks", usesCredits: true },
-          { label: "Email campaigns", usesCredits: true },
-          { label: "CRM export", info: true, usesCredits: true },
+          { label: "Export leads" },
+          { label: "Email unlocks" },
+          { label: "Email campaigns" },
+          { label: "CRM export", info: true },
         ],
       },
       { label: "5 user licenses included" },

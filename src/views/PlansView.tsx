@@ -121,7 +121,10 @@ export default function PlansView({
   const contextDefaultPlan: PlanId = isPurchaseMode ? "buy-list" : "pro";
   const contextDefaultGoal: GoalId | null = isPurchaseMode ? "list" : null;
 
-  const [billing, setBilling] = useState<BillingPeriod>("annual");
+  // ?billing=monthly opens on monthly (review links); annual by default.
+  const [billing, setBilling] = useState<BillingPeriod>(() =>
+    new URLSearchParams(window.location.search).get("billing") === "monthly" ? "monthly" : "annual",
+  );
   const [goal, setGoal] = useState<GoalId | null>(contextDefaultGoal);
   const [selectedPlan, setSelectedPlan] = useState<PlanId>(contextDefaultPlan);
   const [option, setOption] = useState<PricingOption>(readOptionParam);

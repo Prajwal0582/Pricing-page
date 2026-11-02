@@ -4,6 +4,7 @@ import {
   faArrowRight,
   faCartShopping,
   faCoins,
+  faDatabase,
   faPhone,
   faTag,
   faUser,
@@ -84,10 +85,21 @@ function CreditIcon() {
   );
 }
 
-/** Asterisk on features that use credits — explained once in the note under the list. */
+/** Data access rows — a database glyph, so data sets read differently from features. */
+function DatabaseIcon() {
+  return (
+    <span className="flex size-3.5 shrink-0 items-center justify-center rounded-full bg-[#0BA38C] text-white">
+      <FontAwesomeIcon icon={faDatabase} className="text-[7px]" aria-hidden />
+    </span>
+  );
+}
+
+const ASTERISK_RED = "text-[#D92D20]";
+
+/** Asterisk on features that need a credit purchase — explained once in the note under the list. */
 function CreditMark() {
   return (
-    <span className="ml-0.5 font-semibold text-[#008DC3]" aria-label="uses credits">
+    <span className={`ml-0.5 font-semibold ${ASTERISK_RED}`} aria-label="needs credits">
       *
     </span>
   );
@@ -172,13 +184,14 @@ function FeatureRows({
     <>
       {items.map((item) => {
         const key = `${planId}:${section}:${item.label}`;
-        const isOpen = Boolean(expanded[key]);
+        const isOpen = Boolean(item.alwaysOpen || expanded[key]);
         const isExpandable = Boolean(item.expandable && item.children?.length);
+        const isToggle = isExpandable && !item.alwaysOpen;
         const tip = item.info ? resolveTooltip(item.label) : undefined;
         const RowIcon = item.credit ? CreditIcon : Icon;
         return (
           <div key={item.label} className="flex flex-col gap-2">
-            {isExpandable ? (
+            {isToggle ? (
               <button
                 type="button"
                 onClick={(e) => {
@@ -227,16 +240,19 @@ function FeatureRows({
 
 /** One-line explanation for the asterisked features (B3). */
 function CreditsFootnote({ plan }: { plan: (typeof PLANS)[number] }) {
+  const rate = fmtRate(PAYG_CREDIT_RATE);
+  if (plan.id === "buy-list") return null;
   const rows = [...plan.includedItems, ...(plan.notIncludedItems ?? [])];
   const marked = rows.some((r) => r.usesCredits || r.children?.some((c) => c.usesCredits));
-  if (!marked) return null;
-  const basic = plan.id === "basic";
-  return (
+  // Basic: asterisked features need a credit purchase. Pro / Team: credits come with the plan, so just say more can be bought.
+  return marked ? (
     <p className="mt-1 text-xs leading-[18px] text-[#667085]">
-      <span className="font-semibold text-[#008DC3]">*</span>{" "}
-      {basic
-        ? "Available on Basic: you'll need credits to use these (buy as you go at $0.15 each)."
-        : "Uses your plan's credits. Need more? Add credits anytime at $0.15 each."}
+      <span className={`font-semibold ${ASTERISK_RED}`}>*</span> Each use takes credits (e.g. 1 credit per exported
+      record). Buy credits in-app anytime at {rate} per credit.
+    </p>
+  ) : (
+    <p className="mt-1 text-xs leading-[18px] text-[#667085]">
+      Need more credits? Buy extra in-app anytime at {rate} per credit.
     </p>
   );
 }
@@ -262,6 +278,8 @@ function PlanFeatureChecklist({
           item.children ? { ...item, children: item.children.filter((c) => c.label !== "MCP (uses credits)") } : item,
         )
       : plan.notIncludedItems;
+  const creditItems = notIncludedItems?.filter((i) => i.credit) ?? [];
+  const blockedItems = notIncludedItems?.filter((i) => !i.credit) ?? [];
   return (
     <div className={`flex h-full min-h-0 flex-col ${compact ? "gap-5" : "gap-6"}`}>
       {plan.accessItems.length > 0 && (
@@ -269,7 +287,7 @@ function PlanFeatureChecklist({
           <p className="text-sm font-semibold leading-5 text-[#667085]">{accessTitle}</p>
           {plan.accessItems.map((item) => (
             <div key={item} className="flex items-start gap-2">
-              <div className="pt-0.5"><CheckIcon /></div>
+              <div className="pt-0.5">{compact ? <DatabaseIcon /> : <CheckIcon />}</div>
               <span className="text-sm font-normal leading-5 text-[#475467]">{item}</span>
             </div>
           ))}
@@ -285,16 +303,31 @@ function PlanFeatureChecklist({
           expanded={expanded}
           onToggle={onToggle}
         />
-        {/* B3: excluded items continue the same list (no separate "Not included" header). */}
-        {compact && notIncludedItems && notIncludedItems.length > 0 && (
-          <FeatureRows
-            planId={plan.id}
-            section="exc"
-            items={notIncludedItems}
-            Icon={XIcon}
-            expanded={expanded}
-            onToggle={onToggle}
-          />
+        {/* B3: excluded items continue the same list, split by icon type with a gap between groups. */}
+        {compact && creditItems.length > 0 && (
+          <div className="mt-2 flex flex-col gap-2">
+            <p className="text-xs font-semibold leading-[18px] text-[#00739F]">Available with credit purchase</p>
+            <FeatureRows
+              planId={plan.id}
+              section="exc"
+              items={creditItems}
+              Icon={XIcon}
+              expanded={expanded}
+              onToggle={onToggle}
+            />
+          </div>
+        )}
+        {compact && blockedItems.length > 0 && (
+          <div className="mt-2 flex flex-col gap-2">
+            <FeatureRows
+              planId={plan.id}
+              section="exc"
+              items={blockedItems}
+              Icon={XIcon}
+              expanded={expanded}
+              onToggle={onToggle}
+            />
+          </div>
         )}
         {compact && <CreditsFootnote plan={plan} />}
       </div>
@@ -885,7 +918,7 @@ function PlanPriceV3({
           icon: faCoins,
           title: "No credits included",
           points: [
-            `Buy credits as you go, at ${fmtRate(PAYG_CREDIT_RATE)} each`,
+            `Buy credits in-app as you need them, at ${fmtRate(PAYG_CREDIT_RATE)} per credit`,
             "Credits power exports, email unlocks, campaigns, MCP and CRM integrations.",
           ],
         }
@@ -1090,6 +1123,12 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
     return init;
   });
 
+  // Header offer review ideas: "offer" (default), "line", "none" (cards already say "Pay for 10 months, get 12").
+  const headerIdea = (() => {
+    const h = new URLSearchParams(window.location.search).get("header");
+    return h === "line" || h === "none" ? h : "offer";
+  })();
+
   function toggleExpand(key: string) {
     setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
   }
@@ -1162,20 +1201,49 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
                   </div>
                 </div>
 
-                {/* Annual savings callout — positive green; reserved space (no flicker) */}
-                <div
-                  className={`flex w-full sm:max-w-[320px] items-start gap-2 rounded-lg border border-[#CDE9E0] bg-[#F2F9F7] p-4 transition-opacity duration-0 ${
-                    billing === "annual" ? "opacity-100" : "opacity-0"
-                  }`}
-                  aria-hidden={billing !== "annual"}
-                >
-                  <span className="shrink-0 pt-0.5 text-[#026B5C]" aria-hidden>
-                    <FontAwesomeIcon icon={faCircleCheck} className="text-[14px]" />
-                  </span>
-                  <p className="text-xs font-medium leading-[18px] text-[#026B5C]">
-                    Pay only for 10 months and get 12 months of access.
+                {/* Annual offer — review ideas (?header=offer|line|none). Never an empty reserved box. */}
+                {headerIdea === "offer" && (
+                  <div className="flex w-full sm:w-[320px] items-start gap-2 rounded-lg border border-[#CDE9E0] bg-[#F2F9F7] p-4">
+                    <span className="shrink-0 pt-0.5 text-[#026B5C]" aria-hidden>
+                      <FontAwesomeIcon icon={billing === "annual" ? faCircleCheck : faTag} className="text-[14px]" />
+                    </span>
+                    {billing === "annual" ? (
+                      <p className="text-xs font-medium leading-[18px] text-[#026B5C]">
+                        You&apos;re paying for 10 months and getting 12 months of access.
+                      </p>
+                    ) : (
+                      <p className="text-xs font-medium leading-[18px] text-[#026B5C]">
+                        Pay annually: 10 months&apos; price for 12 months of access.{" "}
+                        <button
+                          type="button"
+                          onClick={() => onBillingChange("annual")}
+                          className="font-semibold underline underline-offset-2 hover:text-[#014D42]"
+                        >
+                          Switch to annual
+                        </button>
+                      </p>
+                    )}
+                  </div>
+                )}
+                {headerIdea === "line" && (
+                  <p className="flex items-center gap-1.5 text-xs font-medium leading-[18px] text-[#026B5C] sm:w-[230px]">
+                    <FontAwesomeIcon icon={billing === "annual" ? faCircleCheck : faTag} className="shrink-0 text-[12px]" aria-hidden />
+                    {billing === "annual" ? (
+                      <span>You pay for 10 months, get 12.</span>
+                    ) : (
+                      <span>
+                        Go annual: pay for 10 months, get 12.{" "}
+                        <button
+                          type="button"
+                          onClick={() => onBillingChange("annual")}
+                          className="font-semibold underline underline-offset-2 hover:text-[#014D42]"
+                        >
+                          Switch
+                        </button>
+                      </span>
+                    )}
                   </p>
-                </div>
+                )}
               </div>
             </div>
           </div>
