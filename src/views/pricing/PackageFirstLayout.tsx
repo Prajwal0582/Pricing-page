@@ -1143,7 +1143,7 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
             style={compact ? { boxShadow: GENIE_SHADOW_SM } : undefined}
           >
             <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between lg:gap-8 px-4 py-4 sm:px-6 md:px-8">
-              <div className="flex items-center gap-3 min-w-0 lg:max-w-[55%]">
+              <div className="flex items-center gap-3 min-w-0 lg:max-w-[42%]">
                 {!compact && (
                 <button
                   type="button"
@@ -1166,7 +1166,7 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3 lg:max-w-[48%] w-full lg:w-auto shrink-0 pb-3 sm:pb-0 lg:pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 lg:max-w-[58%] w-full lg:w-auto shrink-0 pb-3 sm:pb-0 lg:pb-3">
                 <div className="relative flex h-10 items-stretch shrink-0 w-full sm:w-auto" role="group" aria-label="Billing period">
                   <button
                     type="button"
@@ -1199,7 +1199,7 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
                 </div>
 
                 {/* Annual offer — always shown: an upsell on monthly, a confirmation on annual (no empty reserved box). */}
-                <div className="flex w-full sm:w-[320px] items-start gap-2 rounded-lg border border-[#CDE9E0] bg-[#F2F9F7] p-4">
+                <div className="flex w-full sm:w-[340px] items-start gap-2 rounded-lg border border-[#CDE9E0] bg-[#F2F9F7] px-4 py-3">
                   <span className="shrink-0 pt-0.5 text-[#026B5C]" aria-hidden>
                     <FontAwesomeIcon icon={billing === "annual" ? faCircleCheck : faTag} className="text-[14px]" />
                   </span>
