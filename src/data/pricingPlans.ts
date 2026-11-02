@@ -88,6 +88,7 @@ export const PLANS: PlanDefinition[] = [
     ],
     notIncludedTitle: "Not Included",
     notIncludedItems: [
+      { label: "Credits", credit: true },
       { label: "Export leads", credit: true, usesCredits: true },
       { label: "Email unlocks", credit: true, usesCredits: true },
       { label: "Email campaigns", credit: true, usesCredits: true },
@@ -141,7 +142,7 @@ export const PLANS: PlanDefinition[] = [
           { label: "Direct mail campaigns", info: true },
         ],
       },
-      { label: "Credits (500/month)" },
+      { label: "Credits (500/month)", usesCredits: true },
       { label: "Export leads" },
       { label: "Email unlocks" },
       { label: "Email campaigns" },
@@ -186,7 +187,7 @@ export const PLANS: PlanDefinition[] = [
         expandable: true,
         alwaysOpen: true,
         children: [
-          { label: "Credits (500/month)" },
+          { label: "Credits (500/month)", usesCredits: true },
           { label: "Export leads" },
           { label: "Email unlocks" },
           { label: "Email campaigns" },

@@ -12,7 +12,7 @@ import {
   faUsers,
   faWandMagicSparkles,
 } from "@fortawesome/free-solid-svg-icons";
-import { faCircleCheck, faEye } from "@fortawesome/free-regular-svg-icons";
+import { faCircleCheck, faCircleXmark, faEye } from "@fortawesome/free-regular-svg-icons";
 import { faCircleCheck as faCircleCheckSolid } from "@fortawesome/free-solid-svg-icons";
 import type { IconDefinition } from "@fortawesome/fontawesome-svg-core";
 import type { FeatureItem, GoalId, PlanId } from "../../data/pricingPlans";
@@ -55,46 +55,38 @@ const HEADER_SURFACE: Record<PlanId, string> = {
   "buy-list": "bg-[#F9FAFB]",
 };
 
-function CheckIcon() {
+/** Font Awesome glyph in a fixed 14px box, so rows keep the same height and alignment as before. */
+function GlyphBox({ icon, className }: { icon: IconDefinition; className: string }) {
   return (
-    <svg viewBox="0 0 14 14" fill="none" className="size-3.5 shrink-0" aria-hidden>
-      <circle cx="7" cy="7" r="5.5" stroke="#0BA38C" strokeWidth="1.3" />
-      <path d="M4.75 7.1l1.5 1.5 3-3" stroke="#0BA38C" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-}
-
-function XIcon() {
-  return (
-    <svg viewBox="0 0 14 14" fill="none" className="size-3.5 shrink-0" aria-hidden>
-      <circle cx="7" cy="7" r="5.5" stroke="#C55418" strokeWidth="1.3" />
-      <path d="M4.75 4.75l4.5 4.5M9.25 4.75l-4.5 4.5" stroke="#C55418" strokeWidth="1.3" strokeLinecap="round" />
-    </svg>
-  );
-}
-
-/** Outlined circle around a small glyph — same ring size and stroke as the check and cross icons. */
-function RingIcon({ icon, color, title }: { icon: IconDefinition; color: string; title?: string }) {
-  return (
-    <span title={title} className="flex size-3.5 shrink-0 items-center justify-center">
-      <span
-        className="flex size-[12.3px] items-center justify-center rounded-full border-[1.3px]"
-        style={{ borderColor: color, color }}
-      >
-        <FontAwesomeIcon icon={icon} className="text-[6px]" aria-hidden />
-      </span>
+    <span className="flex size-3.5 shrink-0 items-center justify-center">
+      <FontAwesomeIcon icon={icon} className={className} aria-hidden />
     </span>
   );
 }
 
-/** Available with credits — a brand-blue coin (not a cross: the feature isn't blocked). */
-function CreditIcon() {
-  return <RingIcon icon={faCoins} color="#008DC3" title="Available with credits" />;
+function CheckIcon() {
+  return <GlyphBox icon={faCircleCheckSolid} className="block text-[14px] text-[#0BA38C]" />;
 }
 
-/** Data access rows — a database glyph, so data sets read differently from features. */
+function XIcon() {
+  return <GlyphBox icon={faCircleXmark} className="block text-[14px] text-[#C55418]" />;
+}
+
+/** Available with credits — a filled brand-blue coin (not a cross: the feature isn't blocked). */
+function CreditIcon() {
+  return (
+    <span
+      title="Available with credits"
+      className="flex size-3.5 shrink-0 items-center justify-center rounded-full bg-[#008DC3] text-white"
+    >
+      <FontAwesomeIcon icon={faCoins} className="text-[7px]" aria-hidden />
+    </span>
+  );
+}
+
+/** Data access rows — a gray database glyph, so data sets read differently from features. */
 function DatabaseIcon() {
-  return <RingIcon icon={faDatabase} color="#0BA38C" />;
+  return <GlyphBox icon={faDatabase} className="block text-[13px] text-[#667085]" />;
 }
 
 const ASTERISK_RED = "text-[#D92D20]";
@@ -243,19 +235,15 @@ function FeatureRows({
 
 /** One-line explanation for the asterisked features (B3). */
 function CreditsFootnote({ plan }: { plan: (typeof PLANS)[number] }) {
-  const rate = fmtRate(PAYG_CREDIT_RATE);
   if (plan.id === "buy-list") return null;
-  const rows = [...plan.includedItems, ...(plan.notIncludedItems ?? [])];
-  const marked = rows.some((r) => r.usesCredits || r.children?.some((c) => c.usesCredits));
-  // Basic: asterisked features need a credit purchase. Pro / Team: credits come with the plan, so just say more can be bought.
-  return marked ? (
+  const rate = fmtRate(PAYG_CREDIT_RATE);
+  // Basic: asterisked features need a credit purchase. Pro / Team: the asterisk on Credits says more can be bought.
+  return (
     <p className="mt-1 text-xs leading-[18px] text-[#667085]">
-      <span className={`font-semibold ${ASTERISK_RED}`}>*</span> Each use takes credits (e.g. 1 credit per exported
-      record). Buy credits in-app anytime at {rate} per credit.
-    </p>
-  ) : (
-    <p className="mt-1 text-xs leading-[18px] text-[#667085]">
-      Need more credits? Buy extra in-app anytime at {rate} per credit.
+      <span className={`font-semibold ${ASTERISK_RED}`}>*</span>{" "}
+      {plan.id === "basic"
+        ? `Each use takes credits (e.g. 1 credit per exported record). Buy credits in-app anytime at ${rate} per credit.`
+        : `Need more credits? Buy extra in-app anytime at ${rate} per credit.`}
     </p>
   );
 }
@@ -309,7 +297,7 @@ function PlanFeatureChecklist({
         {/* B3: excluded items continue the same list, split by icon type with a gap between groups. */}
         {compact && creditItems.length > 0 && (
           <div className="mt-2 flex flex-col gap-2">
-            <p className="text-xs font-semibold leading-[18px] text-[#00739F]">Available with credit purchase</p>
+            <p className="text-xs font-semibold leading-[18px] text-[#00739F]">Available with additional purchase</p>
             <FeatureRows
               planId={plan.id}
               section="exc"
@@ -555,6 +543,9 @@ function SeatsInlineAlert({ onTalkToSales }: { onTalkToSales: () => void }) {
  * Option B3 — plan groups. At xl the grid gains a label row and spacer tracks
  * (cols 3 and 5) so each group can sit on its own panel; rows stay subgrid-aligned.
  */
+/** Widest the pricing content gets (cards ~330px max); wider screens just add side margin. */
+const PRICING_MAX_W = "mx-auto max-w-[1600px]";
+
 const GROUPED_GRID_COLS =
   "xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_12px_minmax(0,1fr)_12px_minmax(0,1fr)]";
 
@@ -1133,7 +1124,7 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
   return (
     <>
       {/* Responsive inset: tight on phone, full desktop padding */}
-      <div className={`w-full px-4 sm:px-6 lg:px-10 ${compact ? "xl:px-10 2xl:px-20" : "xl:px-16 2xl:px-28"} ${compact ? "pt-4" : "pt-4 sm:pt-6"} pb-16 sm:pb-20`}>
+      <div className={`w-full px-4 sm:px-6 lg:px-10 ${compact ? `${PRICING_MAX_W} xl:px-10 2xl:px-20` : "xl:px-16 2xl:px-28"} ${compact ? "pt-4" : "pt-4 sm:pt-6"} pb-16 sm:pb-20`}>
         {/* One panel: context + billing + annual offer (no floating billing row) */}
         <div data-pricing-header className={compact ? "mx-auto w-full max-w-[1120px]" : "w-full"}>
           <div
@@ -1166,7 +1157,7 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
                 </div>
               </div>
 
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3 lg:max-w-[58%] w-full lg:w-auto shrink-0 pb-3 sm:pb-0 lg:pb-3">
+              <div className="flex flex-col sm:flex-row sm:items-center gap-3 w-full lg:w-auto shrink-0 pb-3 sm:pb-0 lg:pb-3">
                 <div className="relative flex h-10 items-stretch shrink-0 w-full sm:w-auto" role="group" aria-label="Billing period">
                   <button
                     type="button"
@@ -1199,7 +1190,7 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
                 </div>
 
                 {/* Annual offer — always shown: an upsell on monthly, a confirmation on annual (no empty reserved box). */}
-                <div className="flex w-full sm:w-[340px] items-start gap-2 rounded-lg border border-[#CDE9E0] bg-[#F2F9F7] px-4 py-3">
+                <div className="flex w-full sm:w-[340px] sm:shrink-0 items-start gap-2 rounded-lg border border-[#CDE9E0] bg-[#F2F9F7] px-4 py-3">
                   <span className="shrink-0 pt-0.5 text-[#026B5C]" aria-hidden>
                     <FontAwesomeIcon icon={billing === "annual" ? faCircleCheck : faTag} className="text-[14px]" />
                   </span>

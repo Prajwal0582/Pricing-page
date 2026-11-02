@@ -140,7 +140,7 @@ export default function SubscriptionComparison({
   onSelectPlan: (planId: Exclude<PlanId, "buy-list">, billing: BillingPeriod) => void;
 }) {
   return (
-    <div className="w-full px-4 sm:px-6 lg:px-10 xl:px-16 2xl:px-28 pb-12">
+    <div className="mx-auto w-full max-w-[1600px] px-4 sm:px-6 lg:px-10 xl:px-16 2xl:px-28 pb-12">
       <div className="w-full bg-white rounded-2xl px-4 sm:px-6 lg:px-10 py-2.5 flex flex-col gap-2.5 max-lg:overflow-x-auto">
         <div className="relative max-lg:min-w-[760px]">
           <div
