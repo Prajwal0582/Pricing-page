@@ -184,6 +184,7 @@ export const PLANS: PlanDefinition[] = [
         label: "Everything in Pro",
         bold: true,
         expandable: true,
+        alwaysOpen: true,
         children: [
           { label: "Credits (500/month)" },
           { label: "Export leads" },

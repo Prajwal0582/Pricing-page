@@ -58,8 +58,8 @@ const HEADER_SURFACE: Record<PlanId, string> = {
 function CheckIcon() {
   return (
     <svg viewBox="0 0 14 14" fill="none" className="size-3.5 shrink-0" aria-hidden>
-      <circle cx="7" cy="7" r="7" fill="#0BA38C" />
-      <path d="M4 7l2 2 4-4" stroke="#fff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="7" cy="7" r="5.5" stroke="#0BA38C" strokeWidth="1.3" />
+      <path d="M4.75 7.1l1.5 1.5 3-3" stroke="#0BA38C" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -73,25 +73,28 @@ function XIcon() {
   );
 }
 
-/** Available with credits — a filled brand-blue coin (not a cross: the feature isn't blocked). */
-function CreditIcon() {
+/** Outlined circle around a small glyph — same ring size and stroke as the check and cross icons. */
+function RingIcon({ icon, color, title }: { icon: IconDefinition; color: string; title?: string }) {
   return (
-    <span
-      title="Available with credits"
-      className="flex size-3.5 shrink-0 items-center justify-center rounded-full bg-[#008DC3] text-white"
-    >
-      <FontAwesomeIcon icon={faCoins} className="text-[7px]" aria-hidden />
+    <span title={title} className="flex size-3.5 shrink-0 items-center justify-center">
+      <span
+        className="flex size-[12.3px] items-center justify-center rounded-full border-[1.3px]"
+        style={{ borderColor: color, color }}
+      >
+        <FontAwesomeIcon icon={icon} className="text-[6px]" aria-hidden />
+      </span>
     </span>
   );
 }
 
+/** Available with credits — a brand-blue coin (not a cross: the feature isn't blocked). */
+function CreditIcon() {
+  return <RingIcon icon={faCoins} color="#008DC3" title="Available with credits" />;
+}
+
 /** Data access rows — a database glyph, so data sets read differently from features. */
 function DatabaseIcon() {
-  return (
-    <span className="flex size-3.5 shrink-0 items-center justify-center rounded-full bg-[#0BA38C] text-white">
-      <FontAwesomeIcon icon={faDatabase} className="text-[7px]" aria-hidden />
-    </span>
-  );
+  return <RingIcon icon={faDatabase} color="#0BA38C" />;
 }
 
 const ASTERISK_RED = "text-[#D92D20]";
@@ -1123,12 +1126,6 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
     return init;
   });
 
-  // Header offer review ideas: "offer" (default), "line", "none" (cards already say "Pay for 10 months, get 12").
-  const headerIdea = (() => {
-    const h = new URLSearchParams(window.location.search).get("header");
-    return h === "line" || h === "none" ? h : "offer";
-  })();
-
   function toggleExpand(key: string) {
     setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
   }
@@ -1201,49 +1198,28 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
                   </div>
                 </div>
 
-                {/* Annual offer — review ideas (?header=offer|line|none). Never an empty reserved box. */}
-                {headerIdea === "offer" && (
-                  <div className="flex w-full sm:w-[320px] items-start gap-2 rounded-lg border border-[#CDE9E0] bg-[#F2F9F7] p-4">
-                    <span className="shrink-0 pt-0.5 text-[#026B5C]" aria-hidden>
-                      <FontAwesomeIcon icon={billing === "annual" ? faCircleCheck : faTag} className="text-[14px]" />
-                    </span>
-                    {billing === "annual" ? (
-                      <p className="text-xs font-medium leading-[18px] text-[#026B5C]">
-                        You&apos;re paying for 10 months and getting 12 months of access.
-                      </p>
-                    ) : (
-                      <p className="text-xs font-medium leading-[18px] text-[#026B5C]">
-                        Pay annually: 10 months&apos; price for 12 months of access.{" "}
-                        <button
-                          type="button"
-                          onClick={() => onBillingChange("annual")}
-                          className="font-semibold underline underline-offset-2 hover:text-[#014D42]"
-                        >
-                          Switch to annual
-                        </button>
-                      </p>
-                    )}
-                  </div>
-                )}
-                {headerIdea === "line" && (
-                  <p className="flex items-center gap-1.5 text-xs font-medium leading-[18px] text-[#026B5C] sm:w-[230px]">
-                    <FontAwesomeIcon icon={billing === "annual" ? faCircleCheck : faTag} className="shrink-0 text-[12px]" aria-hidden />
-                    {billing === "annual" ? (
-                      <span>You pay for 10 months, get 12.</span>
-                    ) : (
-                      <span>
-                        Go annual: pay for 10 months, get 12.{" "}
-                        <button
-                          type="button"
-                          onClick={() => onBillingChange("annual")}
-                          className="font-semibold underline underline-offset-2 hover:text-[#014D42]"
-                        >
-                          Switch
-                        </button>
-                      </span>
-                    )}
-                  </p>
-                )}
+                {/* Annual offer — always shown: an upsell on monthly, a confirmation on annual (no empty reserved box). */}
+                <div className="flex w-full sm:w-[320px] items-start gap-2 rounded-lg border border-[#CDE9E0] bg-[#F2F9F7] p-4">
+                  <span className="shrink-0 pt-0.5 text-[#026B5C]" aria-hidden>
+                    <FontAwesomeIcon icon={billing === "annual" ? faCircleCheck : faTag} className="text-[14px]" />
+                  </span>
+                  {billing === "annual" ? (
+                    <p className="text-xs font-medium leading-[18px] text-[#026B5C]">
+                      You&apos;re paying for 10 months and getting 12 months of access.
+                    </p>
+                  ) : (
+                    <p className="text-xs font-medium leading-[18px] text-[#026B5C]">
+                      Pay annually: 10 months&apos; price for 12 months of access.{" "}
+                      <button
+                        type="button"
+                        onClick={() => onBillingChange("annual")}
+                        className="font-semibold underline underline-offset-2 hover:text-[#014D42]"
+                      >
+                        Switch to annual
+                      </button>
+                    </p>
+                  )}
+                </div>
               </div>
             </div>
           </div>
