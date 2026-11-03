@@ -238,17 +238,12 @@ function FeatureRows({
   );
 }
 
-/** One-line explanation for the asterisked features (B3). */
+/** One-line explanation for Basic's asterisked features (B3). */
 function CreditsFootnote({ plan }: { plan: (typeof PLANS)[number] }) {
-  if (plan.id === "buy-list") return null;
-  const rate = fmtRate(PAYG_CREDIT_RATE);
-  // Basic: asterisked features need a credit purchase. Pro / Team: the asterisk on Credits says more can be bought.
+  if (plan.id !== "basic") return null;
   return (
     <p className="mt-1 text-xs leading-[18px] text-[#667085]">
-      <span className={`font-semibold ${ASTERISK_RED}`}>*</span>{" "}
-      {plan.id === "basic"
-        ? `Each use takes credits (e.g. 1 credit per exported record). Buy credits in-app anytime at ${rate} per credit.`
-        : `Need more credits? Buy extra in-app anytime at ${rate} per credit.`}
+      <span className={`font-semibold ${ASTERISK_RED}`}>*</span> Usage runs on credits.
     </p>
   );
 }

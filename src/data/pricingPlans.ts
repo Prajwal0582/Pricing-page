@@ -76,7 +76,7 @@ export const PLANS: PlanDefinition[] = [
     accessTitle: "View only access to:",
     accessItems: [
       "US Business & Consumer Data",
-      "US New Business & New Movers",
+      "US New Businesses & New Movers",
       "Canadian Business & Consumer Data",
     ],
     includedTitle: "Included Features",
@@ -125,7 +125,7 @@ export const PLANS: PlanDefinition[] = [
     accessTitle: "View + Export access to:",
     accessItems: [
       "US Business & Consumer Data",
-      "US New Mover & New Businesses",
+      "US New Businesses & New Movers",
       "Canadian Business & Consumer Data",
     ],
     includedTitle: "Included Features",
@@ -142,7 +142,7 @@ export const PLANS: PlanDefinition[] = [
           { label: "Direct mail campaigns", info: true },
         ],
       },
-      { label: "Credits (500/month)", usesCredits: true },
+      { label: "Credits (500/month)" },
       { label: "Export leads" },
       { label: "Email unlocks" },
       { label: "Email campaigns" },
@@ -176,7 +176,7 @@ export const PLANS: PlanDefinition[] = [
     accessTitle: "Unlimited access to:",
     accessItems: [
       "US Business & Consumer Data",
-      "US New Mover & New Businesses",
+      "US New Businesses & New Movers",
       "Canadian Business & Consumer Data",
     ],
     includedTitle: "Included Features",
@@ -187,7 +187,7 @@ export const PLANS: PlanDefinition[] = [
         expandable: true,
         alwaysOpen: true,
         children: [
-          { label: "Credits (500/month)", usesCredits: true },
+          { label: "Credits (500/month)" },
           { label: "Export leads" },
           { label: "Email unlocks" },
           { label: "Email campaigns" },
@@ -234,8 +234,8 @@ export const PLANS: PlanDefinition[] = [
     includedTitle: "Included Features",
     includedItems: [
       { label: "Export available immediately" },
-      { label: "30 Days full access to list prospecting functionalities." },
-      { label: "12 Months access to re-export" },
+      { label: "30 days full access to list prospecting functionalities." },
+      { label: "12 months access to re-export" },
       { label: "No recurring subscription" },
       { label: "One-time payment" },
     ],
