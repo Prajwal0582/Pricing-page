@@ -4,7 +4,7 @@ import type { ListPurchaseContext } from "../../types";
 export interface PricingLayoutProps {
   billing: BillingPeriod;
   selectedPlan: PlanId;
-  /** Single plan that may show a badge — never both MOST POPULAR and RECOMMENDED. */
+  /** Plan that gets RECOMMENDED (goal / Buy list flows). Pro always shows MOST POPULAR as well. */
   badgePlanId: PlanId;
   activeBadgeLabel: "MOST POPULAR" | "RECOMMENDED";
   purchaseContext: ListPurchaseContext | null;

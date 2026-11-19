@@ -217,6 +217,7 @@ function FeatureRows({
                   {item.usesCredits && <CreditMark />}
                 </span>
                 {tip ? <InfoTip text={tip} /> : item.info ? <InfoIcon /> : null}
+                {isExpandable && item.alwaysOpen ? <ChevronIcon expanded /> : null}
               </div>
             )}
             {isExpandable && isOpen && item.children?.map((child) => (
@@ -234,6 +235,33 @@ function FeatureRows({
           </div>
         );
       })}
+    </>
+  );
+}
+
+/**
+ * Mobile + tablet (< 1280px): feature lists collapse behind a "Key features" toggle
+ * (Figma "Pricing / Key features toggle", Collapsed / Expanded). Desktop (4 columns) always shows them.
+ */
+function KeyFeaturesCollapse({ children }: { children: ReactNode }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button
+        type="button"
+        data-keep-selection
+        aria-expanded={open}
+        onClick={(e) => {
+          e.stopPropagation();
+          setOpen((o) => !o);
+        }}
+        onKeyDown={(e) => e.stopPropagation()}
+        className="mx-4 flex items-center justify-between border-t border-[#EAECF0] py-4 text-left text-sm font-semibold leading-5 text-[#1D2939] xl:hidden"
+      >
+        Key features
+        <ChevronIcon expanded={open} />
+      </button>
+      <div className={`${open ? "flex" : "hidden"} min-h-0 flex-1 flex-col self-stretch xl:flex`}>{children}</div>
     </>
   );
 }
@@ -337,7 +365,10 @@ function PlanFeatureChecklist({
       )}
       {plan.addons && (
         <div className={`mt-auto flex flex-col ${sectionGap} pt-2 border-t border-[#EAECF0]`}>
-          <p className="text-sm font-semibold leading-5 text-[#667085]">Additional paid features</p>
+          <div className="flex items-center gap-2">
+            <p className="text-sm font-semibold leading-5 text-[#667085]">Additional paid features</p>
+            <AddonChip />
+          </div>
           {plan.addons.map((addon) => (
             <div key={addon.label} className="flex items-center justify-between gap-2">
               <div className="flex min-w-0 items-center gap-2">
@@ -347,7 +378,6 @@ function PlanFeatureChecklist({
                   <InfoTip text={resolveTooltip(addon.label)!} />
                 ) : null}
               </div>
-              <AddonChip />
             </div>
           ))}
         </div>
@@ -549,11 +579,22 @@ const PRICING_MAX_W = "mx-auto max-w-[1600px]";
 const GROUPED_GRID_COLS =
   "xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_12px_minmax(0,1fr)_12px_minmax(0,1fr)]";
 
+/**
+ * Tablet (md–xl, 2 columns): Basic + Pro under "Individual plans", then Team | Buy list side by side,
+ * each under its own label. Cards are 4-row subgrids so CTAs share one line in every row.
+ */
 const GROUPED_CARD_PLACEMENT: Record<PlanId, string> = {
-  basic: "xl:[grid-column:1] xl:[grid-row:2/span_4]",
-  pro: "xl:[grid-column:2] xl:[grid-row:2/span_4]",
-  team: "xl:[grid-column:4] xl:[grid-row:2/span_4]",
-  "buy-list": "xl:[grid-column:6] xl:[grid-row:2/span_4]",
+  basic: "md:[grid-column:1] md:[grid-row:2/span_4] xl:[grid-column:1] xl:[grid-row:2/span_4]",
+  pro: "md:[grid-column:2] md:[grid-row:2/span_4] xl:[grid-column:2] xl:[grid-row:2/span_4]",
+  team: "md:[grid-column:1] md:[grid-row:7/span_4] xl:[grid-column:4] xl:[grid-row:2/span_4]",
+  "buy-list": "md:[grid-column:2] md:[grid-row:7/span_4] xl:[grid-column:6] xl:[grid-row:2/span_4]",
+};
+
+/** Tablet placement of the group labels (desktop placement lives in each group's `column`). */
+const GROUP_LABEL_TABLET: Record<string, string> = {
+  individual: "md:[grid-column:1/span_2] md:[grid-row:1]",
+  team: "md:[grid-column:1] md:[grid-row:6] md:mt-4",
+  "one-time": "md:[grid-column:2] md:[grid-row:6] md:mt-4",
 };
 
 const PLAN_GROUPS = [
@@ -645,7 +686,7 @@ function GroupLabel({ group, groupStyle, active }: { group: PlanGroup; groupStyl
   if (groupStyle === "tabs" || groupStyle === "tabsBorder") return null;
   if (groupStyle === "tracks") {
     return (
-      <p className={`relative col-span-full flex items-center ${group.column} xl:[grid-row:1]`}>
+      <p className={`relative col-span-full flex items-center ${GROUP_LABEL_TABLET[group.id]} ${group.column} xl:[grid-row:1] xl:mt-0`}>
         <span
           className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-semibold leading-5 transition-colors duration-300 ${
             active ? group.accent.chipOn : group.accent.chip
@@ -661,7 +702,7 @@ function GroupLabel({ group, groupStyle, active }: { group: PlanGroup; groupStyl
   const tone = (groupStyle === "spotlight" || groupStyle === "sections") && active ? "text-[#008DC3]" : group.text;
   return (
     <p
-      className={`relative col-span-full flex items-center gap-2 text-sm font-semibold leading-5 transition-colors duration-300 ${tone} ${group.column} xl:[grid-row:1]`}
+      className={`relative col-span-full flex items-center gap-2 text-sm font-semibold leading-5 transition-colors duration-300 ${tone} ${GROUP_LABEL_TABLET[group.id]} ${group.column} xl:[grid-row:1] xl:mt-0`}
     >
       <FontAwesomeIcon icon={group.icon} className="text-[14px]" aria-hidden />
       {group.label}
@@ -757,31 +798,44 @@ function CompanionCard({
 /** Sales line shown under "Request a call" (same number as the comparison footer). */
 const SALES_PHONE = "877.708.3844";
 
-/** Tray (Bravio style) — "Can't decide? Let's talk" bar inside the tray. */
-function TalkBar({ onTalkToSales, sent = false }: { onTalkToSales: () => void; sent?: boolean }) {
+/**
+ * "Can't decide? Let's talk." — Figma "Pricing / Talk to sales bar", Style=Banner (Nov 13):
+ * dark bottom-banner look, support contact only (no "Request a call" until sales requests can be sent).
+ */
+function TalkBar(_props: { onTalkToSales: () => void; sent?: boolean }) {
   return (
     <div
       data-keep-selection
-      className="col-span-full flex flex-col gap-4 rounded-2xl bg-[#00729F] px-6 py-5 text-white sm:flex-row sm:items-center sm:justify-between"
+      data-talk-bar
+      className="relative col-span-full overflow-hidden rounded-2xl bg-[#344054] px-6 py-5 text-white"
     >
-      <div>
-        <p className="text-xl font-semibold leading-[30px]">Can&apos;t decide? Let&apos;s talk.</p>
-        <p className="text-sm leading-5 text-[#E0F2FE]">
-          Tell us what you&apos;re prospecting for and we&apos;ll recommend a plan, or set up custom seats for your team.
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 opacity-40"
+        style={{
+          backgroundImage: `
+            linear-gradient(45deg, rgba(255,255,255,0.07) 25%, transparent 25%),
+            linear-gradient(-45deg, rgba(255,255,255,0.07) 25%, transparent 25%),
+            linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.07) 75%),
+            linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.07) 75%)
+          `,
+          backgroundSize: "24px 24px",
+          backgroundPosition: "0 0, 0 12px, 12px -12px, -12px 0",
+        }}
+      />
+      <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-[#1D2939]/80 to-transparent" />
+      <div className="relative">
+        <p className="text-lg font-semibold leading-7">Can&apos;t decide? Let&apos;s talk.</p>
+        <p className="mt-1 text-sm leading-5 text-white/90">
+          For support, contact us at{" "}
+          <a href="tel:8668726917" className="text-[#7CD4FD] hover:underline">
+            866.872.6917
+          </a>
+          . or{" "}
+          <a href="mailto:jeannie.house@data-axle.com" className="text-[#7CD4FD] hover:underline">
+            jeannie.house@data-axle.com
+          </a>
         </p>
-      </div>
-      <div className="flex shrink-0 flex-col items-start gap-1.5 sm:items-center">
-        <button
-          type="button"
-          onClick={onTalkToSales}
-          className="inline-flex h-10 items-center justify-center gap-2 rounded-full bg-white px-5 text-sm font-medium text-[#00729F] hover:bg-[#F0F9FF]"
-        >
-          <FontAwesomeIcon icon={sent ? faCircleCheckSolid : faPhone} className="text-[14px]" aria-hidden />
-          {sent ? "Request sent" : "Request a call"}
-        </button>
-        <a href={`tel:${SALES_PHONE.replace(/\./g, "")}`} className="text-xs leading-[18px] text-[#E0F2FE] hover:text-white hover:underline">
-          or call us at <span className="font-semibold text-white">{SALES_PHONE}</span>
-        </a>
       </div>
     </div>
   );
@@ -952,7 +1006,7 @@ function PlanPriceV3({
         <p className="mt-1 flex flex-wrap items-center gap-x-1.5 text-xs leading-[18px]">
           <FontAwesomeIcon icon={faCircleCheckSolid} className="text-[14px] text-[#0BA38C]" aria-hidden />
           <span className="font-semibold text-[#0D7867]">
-            Save {fmtMoney(Number(pricing.strikePrice.replace(/,/g, "")) - Number(pricing.display.replace(/,/g, "")))}/year
+            Save {fmtMoney(Number(pricing.strikePrice.replace(/,/g, "")) - Number(pricing.display.replace(/,/g, "")))}/yr
           </span>
           <span className="text-[#98A2B3]" aria-hidden>·</span>
           <span className="text-[#475467]">Pay for 10 months, get 12</span>
@@ -1288,7 +1342,9 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
             const planId = plan.id as Exclude<PlanId, "buy-list">;
             const pricing = billing === "monthly" ? plan.monthly : plan.annual;
             const isSelected = selectedPlan === plan.id;
-            const showBadge = plan.id === badgePlanId;
+            // Pro always carries MOST POPULAR; a recommended plan (goal / Buy list flows) adds RECOMMENDED on its own card.
+            const showBadge = plan.id === "pro" || plan.id === badgePlanId;
+            const badgeLabel = plan.id === "pro" ? "MOST POPULAR" : activeBadgeLabel;
             const summary = PACKAGE_SUMMARIES[planId];
             const fullPlan = PLANS.find((p) => p.id === plan.id)!;
 
@@ -1312,7 +1368,7 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
                 }}
                 className={`relative box-border h-full flex flex-col min-w-0 ${
                   sectioned ? GROUPED_CARD_PLACEMENT[plan.id] : "xl:row-span-4"
-                } xl:grid xl:grid-cols-[minmax(0,1fr)] xl:grid-rows-subgrid xl:gap-y-0 rounded-xl bg-white border cursor-pointer overflow-visible ${motion.className}${
+                } ${sectioned ? "md:grid md:grid-cols-[minmax(0,1fr)] md:grid-rows-subgrid md:gap-y-0" : ""} xl:grid xl:grid-cols-[minmax(0,1fr)] xl:grid-rows-subgrid xl:gap-y-0 rounded-xl bg-white border cursor-pointer overflow-visible ${motion.className}${
                   switchMode ? " animate-plan-rise" : ""
                 } ${
                   isSelected
@@ -1330,7 +1386,7 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
                       style={{ backgroundColor: selectedBar(plan.id) }}
                     />
                   )}
-                  {showBadge && <PlanBadge label={activeBadgeLabel} />}
+                  {showBadge && <PlanBadge label={badgeLabel} />}
                   {compact && billing === "annual" && plan.annual.strikePrice && <SaveRibbon />}
                   <div className={`flex flex-col ${compact ? "gap-1" : "gap-2"}`}>
                     {categoryRow(plan.id, plan.category)}
@@ -1435,7 +1491,8 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
                 </div>
                 )}
 
-                {/* Row 5 — feature checklists; addons bottom-aligned across cards */}
+                {/* Row 5 — feature checklists; addons bottom-aligned across cards (collapsible on mobile) */}
+                <KeyFeaturesCollapse>
                 <div className={`px-4 ${compact ? "pt-3 pb-5" : "py-6"} flex-1 min-h-0`}>
                   <PlanFeatureChecklist
                     plan={fullPlan}
@@ -1444,6 +1501,7 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
                     compact={compact}
                   />
                 </div>
+                </KeyFeaturesCollapse>
                 </div>
               </div>
               </Fragment>
@@ -1470,7 +1528,7 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
             }}
             className={`relative box-border h-full flex flex-col min-w-0 ${
               sectioned ? GROUPED_CARD_PLACEMENT["buy-list"] + " border-dashed" : "xl:row-span-4"
-            } xl:grid xl:grid-cols-[minmax(0,1fr)] xl:grid-rows-subgrid xl:gap-y-0 rounded-xl bg-white border cursor-pointer overflow-visible ${
+            } ${sectioned ? "md:grid md:grid-cols-[minmax(0,1fr)] md:grid-rows-subgrid md:gap-y-0" : ""} xl:grid xl:grid-cols-[minmax(0,1fr)] xl:grid-rows-subgrid xl:gap-y-0 rounded-xl bg-white border cursor-pointer overflow-visible ${
               cardMotion("buy-list", buySelected).className
             }${switchMode ? " animate-plan-rise" : ""} ${
               buySelected
@@ -1563,6 +1621,7 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
             </div>
             )}
 
+            <KeyFeaturesCollapse>
             <div className={`px-4 ${compact ? "pt-3 pb-5" : "py-6"} flex-1 min-h-0`}>
               <PlanFeatureChecklist
                 plan={buyPlan}
@@ -1571,6 +1630,7 @@ export function PackageFirstLayout(props: PackageFirstLayoutProps) {
                 compact={compact}
               />
             </div>
+            </KeyFeaturesCollapse>
             </div>
           </div>
           )}

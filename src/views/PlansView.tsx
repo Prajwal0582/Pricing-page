@@ -15,7 +15,10 @@ interface PlansViewProps {
   onBack: () => void;
   onSelectPlan: (planId: Exclude<PlanId, "buy-list">, billing: BillingPeriod) => void;
   onSearchLeads: () => void;
-  /** When set, Pricing opens in purchase-list mode (Buy List recommended). */
+  /**
+   * When set, Buy list shows this list's count and price, and its CTA goes to checkout.
+   * Buy list is RECOMMENDED unless the context sets `recommendBuyList: false` (Pro stays MOST POPULAR).
+   */
   purchaseContext?: ListPurchaseContext | null;
   onBuyListCheckout?: () => void;
   /** Single-design review links hide the prototype option switcher. */
@@ -24,6 +27,9 @@ interface PlansViewProps {
   salesConfirmInline?: boolean;
   /** Drawer presentation: hide the scrollbar and show a floating "Scroll to view more" nudge. */
   scrollHint?: boolean;
+  /** Lock the design (the app always shows the approved B3 sections layout) instead of reading ?option / ?groups. */
+  fixedOption?: PricingOption;
+  fixedGroupStyle?: GroupStyle;
 }
 
 function readOptionParam(): PricingOption {
@@ -116,10 +122,13 @@ export default function PlansView({
   hideOptionSwitcher = false,
   salesConfirmInline = false,
   scrollHint = false,
+  fixedOption,
+  fixedGroupStyle,
 }: PlansViewProps) {
   const isPurchaseMode = Boolean(purchaseContext);
-  const contextDefaultPlan: PlanId = isPurchaseMode ? "buy-list" : "pro";
-  const contextDefaultGoal: GoalId | null = isPurchaseMode ? "list" : null;
+  const recommendsList = isPurchaseMode && purchaseContext?.recommendBuyList !== false;
+  const contextDefaultPlan: PlanId = recommendsList ? "buy-list" : "pro";
+  const contextDefaultGoal: GoalId | null = recommendsList ? "list" : null;
 
   // ?billing=monthly opens on monthly (review links); annual by default.
   const [billing, setBilling] = useState<BillingPeriod>(() =>
@@ -127,7 +136,7 @@ export default function PlansView({
   );
   const [goal, setGoal] = useState<GoalId | null>(contextDefaultGoal);
   const [selectedPlan, setSelectedPlan] = useState<PlanId>(contextDefaultPlan);
-  const [option, setOption] = useState<PricingOption>(readOptionParam);
+  const [option, setOption] = useState<PricingOption>(() => fixedOption ?? readOptionParam());
   const [salesTopic, setSalesTopic] = useState<"seats" | "general" | null>(null);
   const salesOpen = salesTopic !== null;
   const [salesRequested, setSalesRequested] = useState(false);
@@ -144,7 +153,19 @@ export default function PlansView({
     setSalesToast(true);
     window.setTimeout(() => setSalesToast(false), 3200);
   }
-  const [groupStyle, setGroupStyle] = useState<GroupStyle>(readGroupsParam);
+  /**
+   * "Talk to sales →" (Team card): sales requests can't be sent from the backend yet, so the link
+   * scrolls the drawer to the "Can't decide? Let's talk." banner (centred in view) and flashes it once.
+   */
+  function scrollToTalkBar() {
+    const bar = document.querySelector<HTMLElement>("[data-talk-bar]");
+    if (!bar) return;
+    bar.scrollIntoView({ behavior: "smooth", block: "center" });
+    bar.classList.remove("animate-talk-flash");
+    void bar.offsetWidth; // restart the animation on repeat clicks
+    bar.classList.add("animate-talk-flash");
+  }
+  const [groupStyle, setGroupStyle] = useState<GroupStyle>(() => fixedGroupStyle ?? readGroupsParam());
 
   function changeGroupStyle(next: GroupStyle) {
     setGroupStyle(next);
@@ -164,7 +185,7 @@ export default function PlansView({
   useEffect(() => {
     setGoal(contextDefaultGoal);
     setSelectedPlan(contextDefaultPlan);
-  }, [purchaseContext?.query, purchaseContext?.estimatedPrice, isPurchaseMode]);
+  }, [purchaseContext?.query, purchaseContext?.estimatedPrice, isPurchaseMode, recommendsList]);
 
   function clearRecommendation() {
     setGoal(contextDefaultGoal);
@@ -223,10 +244,10 @@ export default function PlansView({
     return () => document.removeEventListener("mousedown", onPointerDown);
   }, [goal, selectedPlan, contextDefaultGoal, contextDefaultPlan, option, groupStyle]);
 
-  // One badge — MOST POPULAR on Pro by default; RECOMMENDED on the goal / purchase-context plan.
-  const badgePlanId: PlanId = goal !== null ? GOAL_TO_PLAN[goal] : isPurchaseMode ? "buy-list" : "pro";
+  // Pro always shows MOST POPULAR (in the layout). badgePlanId is the plan that also gets RECOMMENDED.
+  const badgePlanId: PlanId = goal !== null ? GOAL_TO_PLAN[goal] : recommendsList ? "buy-list" : "pro";
   const activeBadgeLabel: "MOST POPULAR" | "RECOMMENDED" =
-    goal !== null || isPurchaseMode ? "RECOMMENDED" : "MOST POPULAR";
+    goal !== null || recommendsList ? "RECOMMENDED" : "MOST POPULAR";
 
   const b3 = option === "b3";
   const buyListPriceDisplay = purchaseContext
@@ -235,7 +256,7 @@ export default function PlansView({
       ? "Pay per record"
       : "Custom price";
   const buyListSupportLines = purchaseContext
-    ? [`${purchaseContext.resultCount.toLocaleString()} qualified leads`, "One-time purchase"]
+    ? [`${purchaseContext.resultCount.toLocaleString()} qualified leads`]
     : b3
       ? ["Just need one list? Search, pick your records, and see your price before you buy."]
       : ["Price will be calculated based on selected records."];
@@ -267,7 +288,7 @@ export default function PlansView({
         onBillingChange={setBilling}
         option={option}
         groupStyle={groupStyle}
-        onTalkToSales={() => requestSales("seats")}
+        onTalkToSales={scrollToTalkBar}
         onRequestCall={() => requestSales("general")}
         salesRequested={salesConfirmInline && salesRequested}
       />

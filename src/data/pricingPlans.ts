@@ -97,8 +97,8 @@ export const PLANS: PlanDefinition[] = [
     ],
     addons: [
       { label: "Consumer cellphone", info: true },
-      { label: "Buyer Intent" },
-      { label: "Purchase Signals" },
+      { label: "Buyer Intent", info: true },
+      { label: "Purchase Signals", info: true },
     ],
   },
   {
@@ -146,12 +146,13 @@ export const PLANS: PlanDefinition[] = [
       { label: "Export leads" },
       { label: "Email unlocks" },
       { label: "Email campaigns" },
+      { label: "MCP integration", info: true },
       { label: "CRM export", info: true },
     ],
     addons: [
       { label: "Consumer cellphone", info: true },
-      { label: "Buyer Intent" },
-      { label: "Purchase Signals" },
+      { label: "Buyer Intent", info: true },
+      { label: "Purchase Signals", info: true },
     ],
   },
   {
@@ -191,6 +192,7 @@ export const PLANS: PlanDefinition[] = [
           { label: "Export leads" },
           { label: "Email unlocks" },
           { label: "Email campaigns" },
+          { label: "MCP integration", info: true },
           { label: "CRM export", info: true },
         ],
       },
@@ -207,8 +209,8 @@ export const PLANS: PlanDefinition[] = [
     ],
     addons: [
       { label: "Consumer cellphone", info: true },
-      { label: "Buyer Intent" },
-      { label: "Purchase Signals" },
+      { label: "Buyer Intent", info: true },
+      { label: "Purchase Signals", info: true },
     ],
   },
   {
@@ -238,6 +240,7 @@ export const PLANS: PlanDefinition[] = [
       { label: "12 months access to re-export" },
       { label: "No recurring subscription" },
       { label: "One-time payment" },
+      { label: "MCP integration", info: true },
     ],
     notIncludedTitle: "Not Included",
     notIncludedItems: [
@@ -248,7 +251,6 @@ export const PLANS: PlanDefinition[] = [
         children: [
           { label: "Weekly data refresh" },
           { label: "Email and direct mail campaign" },
-          { label: "MCP (uses credits)", info: true },
           { label: "CRM integration" },
           { label: "Buyer intent" },
           { label: "Consumer cellphone" },
@@ -358,12 +360,10 @@ export function planPriceLabel(planId: Exclude<PlanId, "buy-list">, billing: Bil
 
 /** Tooltip copy for feature / compare info icons (from design screenshots). */
 export const FEATURE_TOOLTIPS: Record<string, string> = {
-  "Direct mail campaigns":
-    "Additional charge for postage, billed separately from credits, paid at time of send",
-  "Direct mail marketing":
-    "Additional charge for postage, billed separately from credits, paid at time of send",
+  "Direct mail campaigns": "Postage is charged separately from credits and billed when the campaign is sent.",
+  "Direct mail marketing": "Postage is charged separately from credits and billed when the campaign is sent.",
   "CRM integration": "CRM integration allows you to export data directly to your CRM",
-  "CRM export": "Connect your CRM anytime; exporting each record to it uses one credit",
+  "CRM export": "Connect your CRM anytime. Each record exported to your CRM uses one credit.",
   "CRM Integration": "CRM integration allows you to export data directly to your CRM",
   "MCP (uses credits)":
     "Access Salesgenie in Claude or ChatGPT through MCP. Setup is available; prospecting actions use credits.",
@@ -372,9 +372,11 @@ export const FEATURE_TOOLTIPS: Record<string, string> = {
   "MCP Integration":
     "Bring Salesgenie into Claude or ChatGPT with MCP so you can research and act on leads in your AI tools.",
   "Consumer cellphone":
-    "Access mobile phone numbers associated with U.S consumers and households, where available and permitted",
+    "Access mobile phone numbers associated with U.S. consumers and households, where available and permitted.",
   "Consumer cellphones":
-    "Access mobile phone numbers associated with U.S consumers and households, where available and permitted",
+    "Access mobile phone numbers associated with U.S. consumers and households, where available and permitted.",
+  "Buyer Intent": "Access signals indicating that businesses are actively seeking solutions like yours.",
+  "Purchase Signals": "Access signals indicating household purchase activity observed in transaction data.",
   "Email marketing": "Requires email addresses unlocked using credits",
   "includes 5": "Contact us for multi-user discounts",
   "Includes 5": "Contact us for multi-user discounts",
